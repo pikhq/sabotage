@@ -1,0 +1,12 @@
+tarxf http://www.libssh.org/files/0.5/ libssh-0.5.0 .tar.gz
+cp $K/libssh-Makefile ./Makefile
+cp $K/libssh-config.mak ./config.mak
+touch include/libssh/config.h
+touch include/config.h
+#patch -p1 < $K/libssh.patch
+#do a echo hack until busybox fixed its patch program
+echo -ne "#include <fcntl.h>\n" > /tmp/libssh.h
+cat include/libssh/libssh.h >> /tmp/libssh.h
+cp /tmp/libssh.h include/libssh/libssh.h
+CFLAGS="-Os -s -D_GNU_SOURCE -I./include -std=gnu99 -Wall -Wextra" make src
+make DESTDIR=$R install

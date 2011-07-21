@@ -1,0 +1,12 @@
+diff -r -u libssh-0.5.0/include/libssh/libssh.h libssh-0.5.0-patched/include/libssh/libssh.h
+--- libssh-0.5.0//include/libssh/libssh.h	2011-05-31 16:29:52.000000000 +0200
++++ libssh-0.5.0-patched//include/libssh/libssh.h	2011-07-20 21:54:39.026722018 +0200
+@@ -22,6 +22,8 @@
+ #ifndef _LIBSSH_H
+ #define _LIBSSH_H
+ 
++#include <fcntl.h>
++
+ #if defined _WIN32 || defined __CYGWIN__
+   #ifdef LIBSSH_STATIC
+     #define LIBSSH_API

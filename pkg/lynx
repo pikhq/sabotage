@@ -1,4 +1,6 @@
-tarxf http://lynx.isc.org/release/ lynx2.8.7 .tar.gz lynx2-8-7
+tarxf http://lynx.isc.org/current/ lynx2.8.8dev.9 .tar.bz2 lynx2-8-8
+
+sed -i 's/define ACCEPT_ALL_COOKIES FALSE/define ACCEPT_ALL_COOKIES TRUE/' userdefs.h
 
 ./configure --prefix=/ --sysconfdir=/etc --mandir=/share/man \
   --with-ssl --disable-nls --enable-ipv6

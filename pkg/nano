@@ -1,0 +1,5 @@
+tarxf http://www.nano-editor.org/dist/v2.3/ nano-2.3.1 .tar.gz
+./configure --prefix=/
+make
+make DESTDIR=$R install
+
