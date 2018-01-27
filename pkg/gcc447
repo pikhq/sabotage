@@ -1,0 +1,158 @@
+[deps]
+m4
+gmp
+mpfr
+mpc
+zlib
+g++447
+
+[vars]
+filesize=25784094
+sha512=318522e170a9e54d051311416dc221d8d727a85d6e24a97fdbd9125d9dea1530930efd04b846c06ddbe3c5acaeef8810e0d4e79b8e9af535f0b08f1f20e5b10b
+tardir=gcc-4.4.7
+no_unlink=1
+
+[mirrors]
+http://ftpmirror.gnu.org/gcc/gcc-4.4.7/gcc-core-4.4.7.tar.bz2
+
+[build]
+VERSION=4.4.7
+VERSION_REMOVE='s,4\.4\.7.*,,'
+# check that libc.so is available, otherwise we'll get a libstdc++.so
+# that is statically linked against musls libc.a.
+# this will lead to random crashes in C++ apps since two concurrent
+# malloc implementations will call brk and mess up each other.
+if [ ! -f "$butch_root_dir""$butch_prefix"/lib/libc.so ] ; then
+	echo "libc.so non-existing or symlink broken"
+	exit 1
+fi
+
+# we're doing a bit of hack to place the g++ contents in this folder
+# the build system isnt really laid out for extracting multiple tarballs into
+# the same dir...
+
+(
+cd ..
+tar xf $C/gcc-g++-$VERSION.tar.bz2
+)
+
+"$K"/libibertyfix libiberty
+
+#more g++ hackery
+#sed -i 's,# include <syscall.h>,#include <sys/syscall.h>,' ./libstdc++-v3/libsupc++/guard.cc
+
+#todo check if this isnt to intrusive
+sed -i 's,gcc_no_link=yes,gcc_no_link=no,' ./libstdc++-v3/configure
+
+#and even more g++ hackery
+mv ./libstdc\+\+-v3/config/os/gnu-linux ./libstdc\+\+-v3/config/os/gnu-linux.org
+cp -r ./libstdc\+\+-v3/config/os/generic ./libstdc\+\+-v3/config/os/gnu-linux
+cp ./libstdc++-v3/config/os/gnu-linux.org/arm-eabi-extra.ver ./libstdc++-v3/config/os/gnu-linux/
+#g++ hackery done
+
+sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+
+sed -i 's@/lib/ld-linux.so.2@/lib/ld-musl-i386.so.1@' gcc/config/i386/linux.h
+sed -i 's@/lib/ld-linux.so.2@/lib/ld-musl-i386.so.1@' gcc/config/i386/linux64.h
+sed -i 's@/lib/ld-linux.so.3@/lib/ld-musl-arm.so.1@' gcc/config/arm/linux-eabi.h
+sed -i 's@/lib/ld-linux.so.2@/lib/ld-musl-arm.so.1@' gcc/config/arm/linux-elf.h
+sed -i 's@/lib/ld.so.1@/lib/ld-musl-mips.so.1@' gcc/config/mips/linux.h
+sed -i 's@/lib/ld.so.1@/lib/ld-musl-mips.so.1@' gcc/config/mips/linux64.h
+sed -i 's@/lib64/ld.so.1@/lib/ld-musl-mips.so.1@' gcc/config/mips/linux64.h
+sed -i 's@/lib32/ld.so.1@/lib/ld-musl-mips.so.1@' gcc/config/mips/linux64.h
+sed -i 's@/lib64/ld-linux-x86-64.so.2@/lib/ld-musl-x86_64.so.1@' gcc/config/i386/linux64.h
+sed -i 's@/lib/ld.so.1@/lib/ld-musl-powerpc.so.1@g' gcc/config/rs6000/sysv4.h
+sed -i 's@/lib/ld.so.1@/lib/ld-musl-powerpc.so.1@g' gcc/config/rs6000/linux64.h
+sed -i 's@/lib64/ld64.so.1@/lib/ld-musl-powerpc64.so.1@g' gcc/config/rs6000/linux64.h
+
+patch -p1 < "$K"/gcc-453-patch0.patch
+
+config_arch_flags=
+config_arch_target_cflags=
+config_arch_target_ldflags=
+if [ "$A" = "arm" ] ; then
+	patch -p1 < "$K"/gcc-453-patch1.patch
+elif [ "$A" = "powerpc" ] ; then
+	patch -p1 < "$K"/gcc-454-stackend.patch
+	config_arch_flags="--enable-secureplt --with-long-double-64"
+	config_arch_target_cflags="-Wl,--secure-plt"
+	config_arch_target_ldflags="-Wl,--secure-plt"
+fi
+
+export CC="$CC -static -D_GNU_SOURCE"
+
+CFLAGS="-O0 -s" LDFLAGS="-Wl,--no-keep-memory" \
+CFLAGS_FOR_TARGET="$config_arch_target_cflags" LDFLAGS_FOR_TARGET="$config_arch_target_ldflags" \
+./configure -C --with-newlib --with-headers=no --prefix="$butch_prefix" \
+  --disable-multilib --disable-nls --disable-mudflap \
+  --disable-libmudflap --enable-libssp --disable-libgomp \
+  --disable-debug --disable-bootstrap \
+  --with-system-zlib \
+  --with-target-libiberty=no --with-target-zlib=no \
+  --enable-languages=c,c++ --enable-clocale=generic \
+  $config_arch_flags
+
+
+gcc_cv_libc_provides_ssp=yes \
+make -j$MAKE_THREADS BOOT_LDFLAGS="-static" LDFLAGS="-static"
+make -j1 DESTDIR="$butch_install_dir" \
+  install-gcc install-target-libgcc install-target-libstdc++-v3
+
+dest=$butch_install_dir$butch_prefix
+
+#create a host_tuple dummy entry, so binutils stuff will get into /bin, etc
+lib_gcc=`$dest/bin/gcc -print-libgcc-file-name`
+lib_gcc_minus_filename=`echo $lib_gcc | sed "$VERSION_REMOVE"`
+host_tuple=`basename $lib_gcc_minus_filename`
+echo host tuple is $host_tuple
+
+if [ ! -e ${dest}/${host_tuple} ] ; then
+	(
+	cd $dest
+	ln -sf . ${host_tuple}
+	)
+fi
+
+#remove gcc's stddef.h which is not compatible
+rm $dest/lib/gcc/$host_tuple/$VERSION/include/stddef.h
+
+copy() {
+	printf "cp %s %s\n" "$1" "$2"
+	cp "$1" "$2"
+}
+
+echo link gcc intrinsic headers into /include/gcc
+# this allows usage of -I/include/gcc for stuff that uses them
+mkdir -p  $dest/include/gcc
+for i in $dest/lib/gcc/$host_tuple/$VERSION/include/* ; do
+  header=`basename "$i"`
+  # do not copy headers that exist in musl
+  [ -e "$dest/include/$header" ] || copy "$i" "$dest/include/gcc/"
+done
+
+# fix specs file. this prevents libgcc_s from being used.
+# not only is it slower, it'll cause assertion errors in ld.
+# the default location for this file is relative from the gcc
+# binary used, "gccdir"/lib/gcc/$host_tuple/$gcc-version/specs
+# the second default path is "gccdir"/lib/gcc/specs. we use
+# the latter to use less movable parts.
+
+"$dest"/bin/gcc -dumpspecs > "$dest"/lib/gcc/specs
+sed -i 's,-lgcc_s,-lgcc_eh,' "$dest"/lib/gcc/specs
+
+if [ "$A" = x86_64 ] ; then
+	mv "$dest"/lib64/* "$dest"/lib/ || true
+	sed -i 's,/lib/../lib64,/lib,' "$dest"/lib/libstdc++.la
+	sed -i 's,/lib/../lib64,/lib,' "$dest"/lib/libsupc++.la
+fi
+
+ln -sf gcc "$dest"/bin/cc
+
+# assert that libstdc++.so is not statically linked against musl
+if ! readelf -a "$dest"/lib/libstdc++.so | grep NEEDED | grep libc.so > /dev/null ; then
+	echo "error: libstdc++.so has no NEEDED entry for libc.so!"
+	exit 1
+fi
+
+ln -sf gcc "$dest"/bin/gcc-$VERSION
+ln -sf g++ "$dest"/bin/g++-$VERSION

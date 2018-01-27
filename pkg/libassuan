@@ -1,0 +1,24 @@
+[mirrors]
+https://www.gnupg.org/ftp/gcrypt/libassuan/libassuan-2.4.3.tar.bz2
+http://mirror.tje.me.uk/pub/mirrors/ftp.gnupg.org/libassuan/libassuan-2.4.3.tar.bz2
+
+[vars]
+filesize=559867
+sha512=2b0f58682b408fc58fa0ec2980b36e54ba66701bf504cf6c98ec652af43501bc7c18573bc78c5b83260f5a3bdb0ec8f4e0662bafd9bba3fe7287e77598e8e4c1
+desc='interprocess communication library used by some GnuPG components'
+pkgver=2
+
+[deps]
+libgpg-error
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir \
+  --with-gpg-error-prefix=$butch_root_dir$butch_prefix"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

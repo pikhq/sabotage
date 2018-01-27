@@ -1,0 +1,35 @@
+[mirrors]
+http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.9.1.tar.gz
+
+[vars]
+filesize=225217
+sha512=d56a043b8fab4693d3f70cceb531c37174e7ded4acd5549e53048d7ce29125ff21d7e758f51a4a73e06250d051e246467039989275838c19a2579edea3f72b7d
+pkgver=2
+desc="debian almquist shell, a strictly POSIX conforming shell"
+
+[deps]
+
+[build]
+cat << EOF > nl.c
+#include <stdio.h>
+int main() {
+	/* the way nl is invoked (-v 0) means we should start with 0 */
+        size_t i = 0; char b[4096];
+        while(fgets(b, sizeof b, stdin)) { printf("%zu %s", i, b); i++; }
+}
+
+EOF
+# dash mkbuiltins script depends on "nl"
+$HOSTCC nl.c -o nl
+export PATH="$PWD:$PATH"
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+LC_CTYPE=C CFLAGS="-D_GNU_SOURCE -D__KLIBC__ $optcflags -g" \
+LDFLAGS="$optldflags -static" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+LC_CTYPE=C make -j$MAKE_THREADS CC_FOR_BUILD="$HOSTCC"
+make DESTDIR="$butch_install_dir" install

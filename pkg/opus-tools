@@ -1,0 +1,26 @@
+[mirrors]
+https://ftp.mozilla.org/pub/mozilla.org/opus/opus-tools-0.1.10.tar.gz
+
+[vars]
+filesize=312093
+sha512=4ead97b9fe4658968a4b5cbe4bde5e2d8cbfaaea18dd0d817597cc6b6b11f26937b9eee7358ade63568f0213131aa80ecbed169d1b3885980a556871a4a7fe98
+pkgver=2
+
+[deps]
+libflac
+libogg
+libopus
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

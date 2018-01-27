@@ -1,0 +1,37 @@
+[vars]
+filesize=74324
+sha512=cba8f589e45758ddbfe4e276399a1ecb0dbe29569be5d85d97733e7f64de2911bd2d03e62700ad0c718a1fc886c2e3def9dee1de5cac884f9e65e772cebe838c
+desc='capture screenshots of X11 windows'
+
+[mirrors]
+http://linuxbrit.co.uk/downloads/scrot-0.8.tar.gz
+http://fossies.org/unix/privat/scrot-0.8.tar.gz
+
+[deps]
+imlib2
+giblib
+scrot-debian-patches
+
+[build]
+tar xf "$C"/scrot_0.8-18.debian.tar.xz
+patch -p1 < debian/patches/04-focused.patch
+patch -p1 < debian/patches/05-addfocusedmanpage.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+cat << EOF >> giblib-config
+#!/bin/sh
+printf "%s" "-lgiblib -lImlib2"
+EOF
+chmod +x giblib-config
+export PATH="$PWD:$PATH"
+
+CPPFLAGS="-D_GNU_SOURCE" \
+CFLAGS="$optcflags $optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS INCLUDES=-I.
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,21 @@
+[mirrors]
+http://downloads.xiph.org/releases/opus/opus-1.2.1.tar.gz
+
+[vars]
+filesize=1011070
+sha512=4a98d0a7dbd1a313e89407576805fd733c1192e8ef7e1137e3260025478a1cf1c5a8b71b48c372a0cffe6340524137fe47f181651888284f8221fb4d673f7cd5
+pkgver=3
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

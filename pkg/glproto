@@ -1,0 +1,17 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.17.tar.bz2
+
+[vars]
+filesize=126969
+sha512=3e5bb1949ab9993e07d2ed7e829b9e0a8803eab476e9f4082fc01087c3dce01f3bcb9d55261eaf60e55977a689b326ed1dcf40f74d5e1fc660c83bea094b6754
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

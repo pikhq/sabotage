@@ -1,0 +1,22 @@
+[vars]
+filesize=136378
+sha512=48ae4008d10fe66b843ff1e891627f8262e00d064fec048c8c1189507e757994e81e4fa2deb4d8d56cff0d1818efe4a692494b9c48a01c6c79c626acefa1b53e
+
+[mirrors]
+http://downloads.sourceforge.net/sourceforge/fuse/sshfs-fuse-2.5.tar.gz
+
+[deps]
+fuse
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+sed -i 's@export PKG_CONFIG_PATH=/usr@export FOOBAR=@' configure
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+make -j $MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

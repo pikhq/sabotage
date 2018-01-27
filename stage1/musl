@@ -1,6 +1,0 @@
-cd $S/musl
-
-git pull || true
-make clean
-make CC=$R/bin/gcc
-make install

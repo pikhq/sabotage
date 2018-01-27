@@ -1,0 +1,34 @@
+[mirrors]
+http://sourceforge.net/projects/guvcview/files/source/guvcview-src-1.5.0.tar.gz
+
+[vars]
+filesize=498336
+sha512=c5d266eb0165eab0973b78ad527bf7806dc1e77d8a4e8d318c613acfaf764677c7a560156b25eb0a6fae5651d1a3e38ed83bb675885be4d1dcc63e57746d886a
+
+[deps]
+gtk+2
+libv4l2
+libusbx
+portaudio
+
+[build]
+#patch -p1 < "$K"/some.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE -DCODEC_FLAG2_FASTPSKIP=0x100 -DCODEC_FLAG2_BPYRAMID=0x10 -DCODEC_FLAG2_WPRED=0x20" \
+CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --disable-sdl2 \
+  --disable-pulse \
+  --disable-debian-menu \
+  --disable-nls \
+  --disable-gsl
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

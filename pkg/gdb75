@@ -1,0 +1,90 @@
+[mirrors]
+ftp://ftp.gnu.org/gnu/gdb/gdb-7.5.1.tar.bz2
+http://ftp.gnu.org/gnu/gdb/gdb-7.5.1.tar.bz2
+
+[vars]
+filesize=21349391
+sha512=23b240f0ca9376dfc2fdeb79e725a3784841d1f787db9f7ca62a5e2f824ddd8b2d5fb3450e19dd8fee79589e3b0a5fe638eaa35966363c78c82711731c26dc47
+
+[deps]
+kernel-headers
+curses
+gettext
+readline
+
+[deps.host]
+patch
+
+[build]
+#fix missing "makeinfo" requirement...
+find . -name 'configure' -exec sed -i 's,MAKEINFO="$MISSING makeinfo",MAKEINFO=true,' '{}' \;
+
+# remove hardcoded -O2 -g CFLAGS which are *not* overridable (i.e. always appended, taking precedence)
+find . -name configure -exec sed -e 's/CFLAGS="-g -O2"/:/g' -e 's/CFLAGS="-O2"/:/g' -i "{}" \;
+
+patch -p1 < "$K"/gdb-threaddb.patch
+patch -p1 < "$K"/gdb-linux_nat.patch
+patch -p1 < "$K"/gdb-amd64-debugreg.patch
+patch -p1 < "$K"/gdb-arm-gentmap.patch
+patch -p1 < "$K"/gdb-76-linux-low-threaddb.patch
+patch -p1 < "$K"/gdb-76-pid_t.patch
+
+# fix mips build ...
+cp "$K"/gdb-sgidefs.h gdb/sgidefs.h
+
+"$K"/libibertyfix libiberty
+
+cp -f "$K"/config.sub .
+
+mkdir build
+cd build
+cp -f "$K"/config.cache .
+# fixing implicit declaration in recursively called (by make) configure tests...
+cat << EOF >> config.cache
+bash_cv_must_reinstall_sighandlers=yes
+bash_cv_func_sigsetjmp=yes
+bash_cv_func_strcoll_broken=no
+bash_cv_func_ctype_nonascii=no
+ac_cv_func_strncmp_works=yes
+ac_cv_c_stack_direction=-1
+gt_cv_func_gnugettext1_libintl=yes
+EOF
+# readline and and libiberty have broken checks; but we have to copy config.cache
+# everywhere to get cache.
+for culprit in readline libiberty libdecnumber opcodes readline bfd ; do
+	mkdir -p $culprit
+	cp config.cache $culprit/
+done
+sed -i 's/noconfigdirs=""/noconfigdirs="intl readline"/' ../configure
+# let's use libedit in lieu of readline and save us from the in-tree compile of the latter...
+ln -sf "$butch_root_dir""$butch_prefix"/lib/libreadline.a readline/libreadline.a
+archflags=
+if [ "$A" = "powerpc" ] ; then
+	cp "$K"/ppc-regs.h .
+	archflags="-include $PWD/ppc-regs.h"
+fi
+
+gdbserverflags="--enable-gdbserver=no"
+[ "$WANT_GDBSERVER" = 1 ] && gdbserverflags="--enable-gdbserver=yes --disable-inprocess-agent"
+# gdbserver tries to build some .so for inprocess-agent, but it doesnt strip away -static
+# from LDFLAGS, so it tries to link the .so with -shared -static, which can't work
+
+xconfflags=
+targets="--enable-64-bit-bfd --enable-targets=x86_64-linux,i386-linux,powerpc-linux,arm-linux,mips-linux,mipsel-linux,microblaze-linux"
+if [ -n "$CROSS_COMPILE" ] ; then
+        xconfflags="--host=$($CC -dumpmachine)"
+        targets=
+fi
+
+LDFLAGS="-static $optldflags" \
+CFLAGS="-D_GNU_SOURCE -D_LARGEFILE64_SOURCE -O0 $optcflags $archflags" \
+../configure -C \
+  --prefix="$butch_prefix" --disable-werror --disable-tls \
+  --with-system-zlib=yes $gdbserverflags $targets $xconfflags \
+  --disable-sim \
+  --disable-tui \
+
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install-gdb
+

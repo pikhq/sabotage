@@ -1,0 +1,73 @@
+--- a/modules/ssl/ssl_engine_init.c.orig	2014-07-15 18:48:00.382044224 +0200
++++ b/modules/ssl/ssl_engine_init.c	2014-07-15 18:48:35.452335112 +0200
+@@ -275,9 +275,11 @@ apr_status_t ssl_init_Engine(server_rec
+             return ssl_die(s);
+         }
+ 
++#ifdef ENGINE_CTRL_CHIL_SET_FORKCHECK
+         if (strEQ(mc->szCryptoDevice, "chil")) {
+             ENGINE_ctrl(e, ENGINE_CTRL_CHIL_SET_FORKCHECK, 1, 0, 0);
+         }
++#endif
+ 
+         if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
+             ap_log_error(APLOG_MARK, APLOG_EMERG, 0, s, APLOGNO(01889)
+--- a/modules/ssl/ssl_engine_rand.c.orig	2014-07-15 18:49:13.853653603 +0200
++++ b/modules/ssl/ssl_engine_rand.c	2014-07-15 18:49:49.180946663 +0200
+@@ -86,9 +86,11 @@ int ssl_rand_seed(server_rec *s, apr_poo
+                  * seed in contents provided by the external
+                  * Entropy Gathering Daemon (EGD)
+                  */
++#ifdef HAVE_SSL_RAND_EGD
+                 if ((n = RAND_egd(pRandSeed->cpPath)) == -1)
+                     continue;
+                 nDone += n;
++#endif
+             }
+             else if (pRandSeed->nSrc == SSL_RSSRC_BUILTIN) {
+                 struct {
+diff -ru httpd-2.4.10.org/modules/ssl/ssl_engine_init.c httpd-2.4.10/modules/ssl/ssl_engine_init.c
+--- httpd-2.4.10.org/modules/ssl/ssl_engine_init.c	2014-10-20 16:22:09.583948111 +0000
++++ httpd-2.4.10/modules/ssl/ssl_engine_init.c	2014-10-20 16:25:36.763958655 +0000
+@@ -830,7 +830,7 @@
+         }
+     }
+ 
+-    n = SSL_CTX_use_certificate_chain(mctx->ssl_ctx,
++    n = _SSL_CTX_use_certificate_chain(mctx->ssl_ctx,
+                                       (char *)chain,
+                                       skip_first, NULL);
+     if (n < 0) {
+@@ -977,7 +977,7 @@
+                 return APR_EGENERAL;
+             }
+         } else {
+-            if ((SSL_CTX_use_certificate_chain_file(mctx->ssl_ctx,
++            if ((_SSL_CTX_use_certificate_chain_file(mctx->ssl_ctx,
+                                                     certfile) < 1)) {
+                 ap_log_error(APLOG_MARK, APLOG_EMERG, 0, s, APLOGNO(02562)
+                              "Failed to configure certificate %s (with chain),"
+diff -ru httpd-2.4.10.org/modules/ssl/ssl_util_ssl.c httpd-2.4.10/modules/ssl/ssl_util_ssl.c
+--- httpd-2.4.10.org/modules/ssl/ssl_util_ssl.c	2014-10-20 16:22:09.583948111 +0000
++++ httpd-2.4.10/modules/ssl/ssl_util_ssl.c	2014-10-20 16:25:36.782958656 +0000
+@@ -460,7 +460,7 @@
+  * format, possibly followed by a sequence of CA certificates that
+  * should be sent to the peer in the SSL Certificate message.
+  */
+-int SSL_CTX_use_certificate_chain(
++int _SSL_CTX_use_certificate_chain(
+     SSL_CTX *ctx, char *file, int skipfirst, pem_password_cb *cb)
+ {
+     BIO *bio;
+diff -ru httpd-2.4.10.org/modules/ssl/ssl_util_ssl.h httpd-2.4.10/modules/ssl/ssl_util_ssl.h
+--- httpd-2.4.10.org/modules/ssl/ssl_util_ssl.h	2014-10-20 16:22:09.582948111 +0000
++++ httpd-2.4.10/modules/ssl/ssl_util_ssl.h	2014-10-20 16:25:36.782958656 +0000
+@@ -69,7 +69,7 @@
+ BOOL        SSL_X509_match_name(apr_pool_t *, X509 *, const char *, BOOL, server_rec *);
+ BOOL        SSL_X509_INFO_load_file(apr_pool_t *, STACK_OF(X509_INFO) *, const char *);
+ BOOL        SSL_X509_INFO_load_path(apr_pool_t *, STACK_OF(X509_INFO) *, const char *);
+-int         SSL_CTX_use_certificate_chain(SSL_CTX *, char *, int, pem_password_cb *);
++int         _SSL_CTX_use_certificate_chain(SSL_CTX *, char *, int, pem_password_cb *);
+ char       *SSL_SESSION_id2sz(unsigned char *, int, char *, int);
+ 
+ #endif /* __SSL_UTIL_SSL_H__ */

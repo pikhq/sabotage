@@ -1,0 +1,26 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/pangox-compat/0.0/pangox-compat-0.0.2.tar.xz
+
+[vars]
+filesize=267396
+sha512=fd3e257157d78c3d86c948e7909226fdebe52408d02a52432de8a295443b64b80b37cb795fe646d581515e6072bd278f2dcab0e43cf27b63b03a82c01eb6b9b3
+pkgver=1
+
+[deps]
+pango
+
+[build]
+patch -p1 < "$K"/pangox-compat-edb9e090.patch
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

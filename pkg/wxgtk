@@ -1,0 +1,56 @@
+[mirrors]
+http://heanet.dl.sourceforge.net/project/wxwindows/2.8.12/wxGTK-2.8.12.tar.gz
+http://surfnet.dl.sourceforge.net/project/wxwindows/2.8.12/wxGTK-2.8.12.tar.gz
+http://switch.dl.sourceforge.net/project/wxwindows/2.8.12/wxGTK-2.8.12.tar.gz
+
+[vars]
+filesize=12834260
+sha512=5db19299fd4607c943ceaceaf5ef666d03f6473d09957233055564ed6b2e916383835436c375f65b3ad40be2cbfe7c3ce1f3a52c9a3aa7c86602853667f13847
+uchkurl=https://sourceforge.net/projects/wxwindows/files/
+
+[deps]
+gtk+2
+libxinerama
+libsm
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+#the first block matching the below sed does stupid things:
+#it sets HOST_SUFFIX and other variables which will later be hardcoded in
+#.so name and header paths
+sed -i 's@if test "\$cross_compiling" = "yes"; then@if false ; then@' configure
+sed -i 's@SEARCH_LIB=.*$@SEARCH_LIB='"$butch_root_dir""$butch_prefix"'/lib@' \
+  configure
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags -std=gnu++03" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-unicode wx_cv_func_snprintf_pos_params=yes \
+  wx_cv_func_strptime_ok=yes
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make -j$MAKE_THREADS V=1
+
+make DESTDIR="$butch_install_dir" install
+(
+  cd contrib/src/stc
+  make -j$MAKE_THREADS
+  make DESTDIR="$butch_install_dir" install
+)
+
+cat << EOF > wxgtk.pc
+prefix=$butch_prefix
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: wxgtk
+Description: wxgtk lib
+Version: 2.8.12
+Libs: -lwx_gtk2u_richtext-2.8 -lwx_gtk2u_aui-2.8 -lwx_gtk2u_xrc-2.8 -lwx_gtk2u_qa-2.8 -lwx_gtk2u_html-2.8 -lwx_gtk2u_adv-2.8 -lwx_gtk2u_core-2.8 -lwx_baseu_xml-2.8 -lwx_baseu_net-2.8 -lwx_baseu-2.8
+Cflags: -D__WXGTK__ -I\${libdir}/wx/include/gtk2-unicode-release-2.8 -I\${includedir}/wx-2.8
+EOF
+install -Dm 644 wxgtk.pc "$butch_install_dir"/lib/pkgconfig/wxgtk.pc

@@ -1,0 +1,4 @@
+#!/bin/sh
+[ "$1" = "--prereqs" ] && exit 0
+
+exec wpa_supplicant -Dnl80211,wext,hostapd,wired -iwlan0 -c/etc/wpa_supplicant.conf

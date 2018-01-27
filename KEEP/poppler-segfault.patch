@@ -1,0 +1,15 @@
+--- poppler-0.22.0.org/poppler/GlobalParams.cc	2013-01-09 15:10:49.947000004 +0000
++++ poppler-0.22.0/poppler/GlobalParams.cc	2013-01-09 16:54:48.168000002 +0000
+@@ -1088,10 +1088,10 @@
+   
+   const char *lang = getFontLang(font);
+   
+-  p = FcPatternBuild(NULL,
++  p = FcPatternBuild(0,
+                     FC_FAMILY, FcTypeString, family,
+                     FC_LANG, FcTypeString, lang,
+-                    NULL);
++                    (void*) 0);
+   if (slant != -1) FcPatternAddInteger(p, FC_SLANT, slant);
+   if (weight != -1) FcPatternAddInteger(p, FC_WEIGHT, weight);
+   if (width != -1) FcPatternAddInteger(p, FC_WIDTH, width);

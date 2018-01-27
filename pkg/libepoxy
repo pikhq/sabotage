@@ -1,0 +1,26 @@
+[mirrors]
+https://github.com/anholt/libepoxy/releases/download/1.4.2/libepoxy-1.4.2.tar.xz
+
+[vars]
+filesize=781440
+sha512=32ec8307bce94909be8fd49f677310c1fa4039ccb17bde7799e58de69e48deb19cac641e42f0535bd3380fd0f5bc2bdfdce9dc10204345cdfc8815e2482f07f7
+pkgver=4
+
+[deps]
+libx11
+mesalib
+
+[deps.host]
+python
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,30 @@
+[mirrors]
+http://thrysoee.dk/editline/libedit-20170329-3.1.tar.gz
+
+[vars]
+filesize=508504
+sha512=597ed2282240be6dc3c4a7bb8b4ade31fe16ebfeb2229e3aec58643a65882653cc91deb300343d1b1cc588959dbf95698122c4005e47dfb947efa3e6b134bb82
+pkgver=3
+
+[deps]
+curses
+
+[build]
+patch -p1 < "$K"/libedit_readlineh.patch
+patch -p1 < "$K"/libedit-export-event-hook.patch
+
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+
+CFLAGS="-D_GNU_SOURCE -D_BSD_SOURCE -D__STDC_ISO_10646__ $optcflags" \
+  ./configure -C --prefix="$butch_prefix" --enable-widec $xconfflags
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install
+
+# use libedit as a readline drop-in replacement (it has 10 KLOC less, 20 instead of 30)
+dest="$butch_install_dir""$butch_prefix"
+ln -sf libedit.a "$dest"/lib/libreadline.a
+ln -sf libedit.so "$dest"/lib/libreadline.so
+mkdir -p "$dest"/include/readline
+touch "$dest"/include/readline/history.h
+touch "$dest"/include/readline/tilde.h
+ln -sf ../editline/readline.h "$dest"/include/readline/readline.h

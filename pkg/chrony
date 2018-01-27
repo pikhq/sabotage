@@ -1,0 +1,26 @@
+[mirrors]
+http://download.tuxfamily.org/chrony/chrony-3.2.tar.gz
+
+[vars]
+filesize=433882
+sha512=496af5bed91600f268c1a0fa577bb8c7785e485f78598b666829c674e94770c16548cec4289a2ae9d0a51191d2705eda00886cb6cccae3828aa201a49d4783a4
+pkgver=5
+desc='versatile NTP implementation. comes with server and client'
+service=chrony
+serviceflags="--down --log"
+
+[deps]
+libcap2
+
+[build]
+[ -z "$butch_prefix" ] && butch_prefix=/
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+  ./configure --prefix="/$butch_prefix" \
+              --sbindir="/bin" \
+              --without-readline \
+              --without-nss
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+install -D -m 644 examples/chrony.conf.example3 \
+  "$butch_install_dir"/"$butch_prefix"/etc/chrony.conf
+

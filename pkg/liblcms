@@ -1,0 +1,22 @@
+[mirrors]
+http://sourceforge.net/projects/lcms/files/lcms/1.19/lcms-1.19.tar.gz
+
+[vars]
+filesize=927752
+sha512=85a55ad0673f0df2aaa80d18caa50314319f8da5ee4d84eed919059d0dad9861d684ef6353ce0ec6f9892a4603ce8e8e12f84d46858e23f52846b8aefd3cf449
+
+[deps]
+libjpeg
+libtiff
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS=-D_GNU_SOURCE \
+CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

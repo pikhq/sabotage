@@ -1,0 +1,19 @@
+[mirrors]
+http://downloads.sourceforge.net/project/lxde/LXInput%20%28Kbd%20and%20amp_%20mouse%20config%29/LXInput%200.3.x/lxinput-0.3.5.tar.xz
+
+[vars]
+filesize=145356
+sha512=d5233f03c4314ac16fb548db56ae2d17651b29d8a59bfef3e6e6805f6b9bc8100b0711bbc72e31a6bc458eccc6fe1b4a38cf097dbf6a1b04f600bba58ff03f35
+
+[deps]
+gtk+2
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

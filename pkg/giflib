@@ -1,0 +1,20 @@
+[mirrors]
+http://downloads.sourceforge.net/sourceforge/giflib/giflib-5.1.4.tar.bz2
+
+[vars]
+filesize=639703
+sha512=32b5e342056c210e6478e9cb3b6ceec9594dcfaf34feea1eb4dad633a081ed4465bceee578c19165907cb47cb83912ac359ceea666a8e07dbbb5420f9928f96d
+uchkurl=http://sourceforge.net/projects/giflib/files/
+
+[deps]
+libx11
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS=-D_GNU_SOURCE CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags have_xmlto=no
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

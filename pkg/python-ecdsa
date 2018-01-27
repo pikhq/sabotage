@@ -1,0 +1,18 @@
+[mirrors]
+https://pypi.python.org/packages/source/e/ecdsa/ecdsa-0.13.tar.gz
+
+[vars]
+filesize=55579
+sha512=f21d4d196404455135a1a2255c889ffa26160ea1e9b9d16c914ea82614831816acb6d27c86aac68cdaafa8b1d5fefe065b5f49ce45acaae4a035cd7f08a97594
+pkgver=2
+uchkurl=https://pypi.python.org/pypi/ecdsa
+
+[deps.run]
+python
+
+[deps.host]
+python
+
+[build]
+python setup.py build
+python setup.py install --prefix="$butch_prefix" --root="$butch_install_dir"

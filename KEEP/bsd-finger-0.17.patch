@@ -1,0 +1,20 @@
+--- ./finger/finger.h.orig	Sun Feb 25 17:18:59 2001
++++ ./finger/finger.h	Sun Feb 25 17:19:12 2001
+@@ -39,6 +39,7 @@
+ 
+ #include <pwd.h>
+ #include <utmp.h>
++#include <time.h>
+ 
+ /*
+  * All unique persons are linked in a list headed by "head" and linkd
+--- ./fingerd/fingerd.c.orig	Sun Feb 25 17:21:14 2001
++++ ./fingerd/fingerd.c	Sun Feb 25 17:21:29 2001
+@@ -55,6 +55,7 @@
+ #include <netinet/in.h>
+ #include <sys/utsname.h>
+ #include <sys/wait.h>
++#include <sys/socket.h>
+ 
+ #include "pathnames.h"
+ #include "../version.h"

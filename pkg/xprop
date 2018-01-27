@@ -1,0 +1,26 @@
+[vars]
+filesize=145556
+sha512=934a46423d4904e57a3f5fc4ffed469f85a9bb6a3544cd2d2f80cf7ac1e6ebe1de8b3631c99a4d32c0f02992fcc940e2938832751182f0996ba3a95017794572
+
+[deps]
+libx11
+libxcb
+libxau
+
+[mirrors]
+http://xorg.freedesktop.org/archive/individual/app/xprop-1.2.2.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+LIBS="-lxcb -lXau" \
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

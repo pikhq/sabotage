@@ -1,0 +1,45 @@
+--- llvm-3.4.org/tools/clang/lib/Driver/Tools.cpp
++++ llvm-3.4/tools/clang/lib/Driver/Tools.cpp
+@@ -6357,18 +6357,19 @@
+   if (ToolChain.getTriple().getEnvironment() == llvm::Triple::Android)
+     return "/system/bin/linker";
+   else if (ToolChain.getArch() == llvm::Triple::x86)
+-    return "/lib/ld-linux.so.2";
++    return "/lib/ld-musl-i386.so.1";
+   else if (ToolChain.getArch() == llvm::Triple::aarch64)
+-    return "/lib/ld-linux-aarch64.so.1";
++    return "/lib/ld-musl-aarch64.so.1";
+   else if (ToolChain.getArch() == llvm::Triple::arm ||
+            ToolChain.getArch() == llvm::Triple::thumb) {
+     if (ToolChain.getTriple().getEnvironment() == llvm::Triple::GNUEABIHF)
+-      return "/lib/ld-linux-armhf.so.3";
++      return "/lib/ld-musl-armhf.so.1";
+     else
+-      return "/lib/ld-linux.so.3";
+-  } else if (ToolChain.getArch() == llvm::Triple::mips ||
+-             ToolChain.getArch() == llvm::Triple::mipsel)
+-    return "/lib/ld.so.1";
++      return "/lib/ld-musl-arm.so.1";
++  } else if (ToolChain.getArch() == llvm::Triple::mips)
++    return "/lib/ld-musl-mips.so.1";
++  else if (ToolChain.getArch() == llvm::Triple::mipsel)
++    return "/lib/ld-musl-mipsel.so.1";
+   else if (ToolChain.getArch() == llvm::Triple::mips64 ||
+            ToolChain.getArch() == llvm::Triple::mips64el) {
+     if (hasMipsN32ABIArg(Args))
+@@ -6376,13 +6377,13 @@
+     else
+       return "/lib64/ld.so.1";
+   } else if (ToolChain.getArch() == llvm::Triple::ppc)
+-    return "/lib/ld.so.1";
++    return "/lib/ld-musl-powerpc.so.1";
+   else if (ToolChain.getArch() == llvm::Triple::ppc64 ||
+            ToolChain.getArch() == llvm::Triple::ppc64le ||
+            ToolChain.getArch() == llvm::Triple::systemz)
+     return "/lib64/ld64.so.1";
+   else
+-    return "/lib64/ld-linux-x86-64.so.2";
++    return "/lib/ld-musl-x86_64.so.1";
+ }
+ 
+ void gnutools::Link::ConstructJob(Compilation &C, const JobAction &JA,

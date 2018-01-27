@@ -1,0 +1,29 @@
+[mirrors]
+http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-1.7.2.tar.bz2
+
+[vars]
+filesize=1708416
+sha512=a895c96a1c4096622c797a5a877e80529ce63e3bd3adea9f68994b32e13e7b3be14cdfe824d338f48b12f49de537f7d0f6db14f422ea896697667c672daeb1cc
+pkgver=14
+desc='library for text shaping (unicode -> glyph indices and positions)'
+
+[deps]
+glib
+freetype
+
+[build]
+#patch -p1 < "$K"/some.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --with-icu=no
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,17 +1,32 @@
-tarxf ftp://ftp.vim.org/pub/vim/unix/ vim-7.3 .tar.bz2 vim73
+[mirrors]
+ftp://ftp.vim.org/pub/vim/unix/vim-8.0.586.tar.bz2
 
-PATCHLEVEL=159
-for n in $(seq -w 001 $PATCHLEVEL); do
-  echo "Grabbing patch $n/$PATCHLEVEL"
-  wget -q -O - ftp://ftp.vim.org/pub/vim/patches/7.3/7.3.$n | patch -p0
-done
+[vars]
+filesize=10866752
+sha512=f8f7f9babf7bca50bb5e80b85ca3d74172c3da783b3a2b13f67cce802f01974fe74042b67dda4de727bf2cf2c1399e3443428b14fd6b90f79be98a88ea03d621
+pkgver=4
+tardir=vim80
+desc='a terminal-based text editor with a gazillion of features'
 
-CFLAGS="-D_GNU_SOURCE" ./configure --prefix=/ --mandir=/share/man --localstatedir=/var/lib/vim \
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE -include stdlib.h -DHAVE_SETENV -DHAVE_PUTENV" \
+CFLAGS="$optcflags" \
+LIBS="-lcurses -lterminfo" \
+LDFLAGS="$optldflags -static" \
+./configure -C $xconfflags \
+  vim_cv_toupper_broken=no \
+  --with-tlib=ncurses \
+  vim_cv_terminfo=yes \
+  vim_cv_tty_group=world \
+  vim_cv_tty_group=world \
+  vim_cv_getcwd_broken=no \
+  vim_cv_stat_ignores_slash=no \
+  vim_cv_memmove_handles_overlap=yes \
+  --prefix="$butch_prefix" --mandir="$butch_prefix"/share/man --localstatedir="$butch_prefix"/var/lib/vim \
   --disable-nls --disable-netbeans --disable-gui --with-x=no --enable-multibyte
-make -C src auto/osdef.h
-sed -i '/define stack_t/d' src/auto/config.h
-sed -i '/setenv/d' src/auto/osdef.h
-sed -i '/putenv/d' src/auto/osdef.h
 
-make
-make -j1 VIMRCLOC=/etc DESTDIR=$R install
+make -j$MAKE_THREADS
+make -j1 STRIP=true VIMRCLOC="$butch_prefix"/etc DESTDIR="$butch_install_dir" install

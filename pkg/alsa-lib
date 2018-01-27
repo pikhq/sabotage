@@ -1,0 +1,62 @@
+[mirrors]
+ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.5.tar.bz2
+http://gentoo.netnitco.net/distfiles/alsa-lib-1.1.5.tar.bz2
+http://alsa.cybermirror.org/lib/alsa-lib-1.1.5.tar.bz2
+http://distfiles.lesslinux.org/alsa-lib-1.1.5.tar.bz2
+http://distfiles.exherbo.org/distfiles/alsa-lib-1.1.5.tar.bz2
+
+[vars]
+filesize=979225
+sha512=c79ceaa1ebfeda2caf41a0495ea31dd2748a11795989aebc341ae13a5c96d21495e4542571d5590e68b2575ceddd6e84059a950ddb78e6c0b9d94861faee4f58
+pkgver=4
+
+[deps]
+kernel-headers
+
+[build]
+patch -p1 < "$K"/alsa-lib-1.1.2-avoid_forking.patch
+cp -f "$K"/config.sub .
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > test/Makefile.in
+
+patch -p1 < "$K"/alsa-lib_mask_inline.patch
+
+sed -i 's,#if !defined(_POSIX_C_SOURCE) && !defined(_POSIX_SOURCE),#if 0,' include/global.h
+for i in asoundlib-head.h local.h ; do
+sed -i 's,sys/poll\.h,poll.h,' include/$i
+done
+
+THIS="$PWD"
+
+debugcflags=
+debugflags=
+if [ "$DEBUGBUILD" = 1 ] ; then
+	debugflags=--with-debug
+	debugcflags="-O0 -g3"
+fi
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+
+# by default alsa-lib uses --with-versioned, which will create 2 sets of functions,
+# one for the old ABI that was deprecated over 10 years ago, and the current one,
+# with versioning symbols. since musl's symlinker previously didn't support
+# symbol versioning at all, the effect was that we got the wrong (old) functions
+# used instead of the new ones, which caused serious breakage.
+# musl now implements the subset of symbol versioning needed to get the default
+# symbol version, so this isn't strictly needed anymore - however using the versioned
+# stuff still bloats up the library with obsolete ancient junk nobody uses.
+
+CFLAGS="-include stdlib.h -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE -include limits.h -Os $debugcflags $optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C \
+	 --prefix="$butch_prefix" \
+         --disable-python \
+         --without-versioned \
+         $debugflags $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+find . -name Makefile -exec sed -i 's,STRIP = strip,STRIP = echo,' "{}" \;
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

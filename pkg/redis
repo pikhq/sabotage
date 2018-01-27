@@ -1,0 +1,27 @@
+[mirrors]
+http://download.redis.io/releases/redis-3.2.11.tar.gz
+
+[vars]
+filesize=1550452
+sha512=3eab216350828ef78e7e9e28ac2fff3ea89d9eb7f86a66c4788667cde7c966bce7dda03470c2baacf2dce63496685e11ca2ef0a82b5fbbd20fb8e449146a20ee
+pkgver=6
+service=redis
+serviceflags="--down --log"
+
+[deps]
+musl
+
+[build]
+
+# patch is from arch linux
+patch -p1 < "$K"/redis-sane-defaults.patch
+sed -i "s@ar rcs@""$CROSS_COMPILE""ar rcs@" deps/hiredis/Makefile
+sed -i 's@CC:=.*$@@' deps/hiredis/Makefile
+# MALLOC=libc: use musl malloc instead of jemalloc. This might be bad for performance though,
+# if that is important to you, you should make benchmarks (and share them)!
+make MALLOC=libc LDFLAGS="$optldflags" CFLAGS="$optcflags" V=1 -j$MAKE_THREADS \
+  AR="$CROSS_COMPILE""ar"
+
+make PREFIX="$butch_install_dir" install
+install -Dm400 redis.conf "$butch_install_dir"/etc/redis.conf
+

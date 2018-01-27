@@ -1,0 +1,76 @@
+[mirrors]
+https://cmake.org/files/v3.9/cmake-3.9.3.tar.gz
+
+[vars]
+filesize=7705238
+sha512=30058cf4c154221846d1cd22eaf44a297d2a2d020a443f3e6f40384dfb86ee9a639a1299aa9f187f230505b2a6ee0fe69fbf5e80410711a6ac3d7a07b37f8dfc
+pkgver=2
+desc='immensely bloated build tool mostly used by windows and C++ folks'
+
+[deps]
+bzip2
+curl
+expat
+zlib
+libarchive
+
+[deps.host]
+dynamic-toolchain
+
+[build]
+patch -p1 < "$K"/cmake-isystem.patch
+
+sed -i 's,defined(HAVE_LIBCRYPTO),0,' Utilities/cmlibarchive/libarchive/archive_hmac.c
+
+if [ -z "$CROSS_COMPILE" ] ; then
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure --prefix="$butch_prefix" \
+     --system-curl \
+     --system-zlib \
+     --system-bzip2 \
+     --system-expat \
+     --system-libarchive
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+else
+
+mkdir -p build && cd build
+for i in ar ld nm objcopy objdump strip ; do
+printf '#!/bin/sh\n%s%s "$@"\n' "$CROSS_COMPILE" "$i" > "$CROSS_COMPILE""$i"
+chmod +x "$CROSS_COMPILE""$i"
+done
+[ -n "$CROSS_COMPILE" ] && xconfflags="
+-DCMAKE_FIND_ROOT_PATH=$butch_root_dir$butch_prefix \
+-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+-DCMAKE_AR="$CROSS_COMPILE"ar \
+-DCMAKE_LD="$CROSS_COMPILE"ld \
+-DCMAKE_NM="$CROSS_COMPILE"nm \
+-DCMAKE_OBJCOPY="$CROSS_COMPILE"objcopy \
+-DCMAKE_OBJDUMP="$CROSS_COMPILE"objdump \
+-DCMAKE_STRIP="$CROSS_COMPILE"strip \
+"
+sed -i 's@macro(ADD_DOCS target dependency)@macro(ADD_DOCS target dependency)\nendmacro()\nmacro(ADD_FUCKS target dependency)@' ../Utilities/CMakeLists.txt || { echo sed err ; exit 1 ; }
+sed -i 's@^  COMMAND \${CMD}@  COMMAND true@' ../Utilities/CMakeLists.txt || { echo sed err ; exit 1 ; }
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+CXXFLAGS="$optcflags" \
+cmake $xconfflags \
+  -DCMAKE_INSTALL_PREFIX="$butch_prefix" \
+  -DCMAKE_VERBOSE_MAKEFILE=ON \
+  -DCMAKE_USE_SYSTEM_BZIP2=ON \
+  -DCMAKE_USE_SYSTEM_LIBARCHIVE=ON \
+  -DCMAKE_USE_SYSTEM_CURL=ON \
+  -DCMAKE_USE_SYSTEM_ZLIB=ON \
+  -DCMAKE_USE_SYSTEM_EXPAT=ON \
+  -DCTEST_TEST_CPACK=OFF \
+  ..
+make -j$MAKE_THREADS VERBOSE=1
+
+sed -i 's@^[\t ]*bin/cmake@\tcmake@g' Makefile
+make DESTDIR="$butch_install_dir" install
+
+fi

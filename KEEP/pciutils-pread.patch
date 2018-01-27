@@ -1,0 +1,12 @@
+--- pciutils-3.2.1/lib/pread.h	2006-05-05 12:18:24.000000000 +0000
++++ pciutils-3.2.1/lib/pread.h	2014-01-01 16:09:44.653087473 +0000
+@@ -12,7 +12,7 @@
+  *  don't define it.
+  */
+ 
+-#if defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ > 0
++#if defined(HAVE_PREAD) || (defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ > 0)
+ /* glibc 2.1 or newer -> pread/pwrite supported automatically */
+ 
+ #elif defined(i386) && defined(__GLIBC__)
+

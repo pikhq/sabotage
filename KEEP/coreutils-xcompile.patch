@@ -1,0 +1,14 @@
+--- coreutils-8.20.org/Makefile.in
++++ coreutils-8.20/Makefile.in
+@@ -5308,9 +5308,10 @@
+ 	$(AM_V_CCLD)$(LINK) $(src_ls_OBJECTS) $(src_ls_LDADD) $(LIBS)
+ src/make-prime-list.$(OBJEXT): src/$(am__dirstamp) \
+ 	src/$(DEPDIR)/$(am__dirstamp)
++	$(HOSTCC) -Ilib -c src/make-prime-list.c -o src/make-prime-list.$(OBJEXT)
+ src/make-prime-list$(EXEEXT): $(src_make_prime_list_OBJECTS) $(src_make_prime_list_DEPENDENCIES) $(EXTRA_src_make_prime_list_DEPENDENCIES) src/$(am__dirstamp)
+ 	@rm -f src/make-prime-list$(EXEEXT)
+-	$(AM_V_CCLD)$(LINK) $(src_make_prime_list_OBJECTS) $(src_make_prime_list_LDADD) $(LIBS)
++	$(HOSTCC) $(src_make_prime_list_OBJECTS) $(src_make_prime_list_LDADD) $(LIBS) -o src/make-prime-list$(EXEEXT)
+ src/src_md5sum-md5sum.$(OBJEXT): src/$(am__dirstamp) \
+ 	src/$(DEPDIR)/$(am__dirstamp)
+ src/md5sum$(EXEEXT): $(src_md5sum_OBJECTS) $(src_md5sum_DEPENDENCIES) $(EXTRA_src_md5sum_DEPENDENCIES) src/$(am__dirstamp)

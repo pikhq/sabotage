@@ -1,0 +1,17 @@
+[deps]
+xproto
+libx11
+
+[vars]
+filesize=303806
+sha512=21d3ba66b33eeffdcbe4e963235dcab1cc510686f9f2f616c25b44028faee66f1a12e087f27c53a4bc495f34c60949dfe834977a14ca12ec48c5be818abe1f94
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libFS-1.0.5.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

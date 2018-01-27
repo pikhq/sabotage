@@ -1,0 +1,36 @@
+[mirrors]
+https://github.com/mpv-player/mpv/archive/v0.27.0.tar.gz
+
+[vars]
+filesize=2956816
+sha512=22738f907d84d362095773972f685e3b03ab4c8172a22ddede290fc221a83ab9135b96f8b18191dabe842b2963f68983929cf065097287fc1a054a7d5f1d0ae4
+tarball=mpv-0.27.0.tar.gz
+pkgver=10
+uchkurl=https://github.com/mpv-player/mpv/releases
+desc='media player forked from mplayer with major cleanups'
+
+[deps]
+ffmpeg
+libass
+lua
+
+[deps.host]
+python
+
+[build]
+testlib() {
+	printf "int main() {}\n" > test_lib.c
+	$CC test_lib.c -l$1 >/dev/null 2>&1
+}
+
+libgl=--disable-gl
+testlib GL && libgl=
+
+./bootstrap.py
+
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./waf configure --prefix="$butch_prefix" $libgl
+
+./waf -v build -j$MAKE_THREADS
+./waf install --destdir="$butch_install_dir"

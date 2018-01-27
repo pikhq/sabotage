@@ -1,0 +1,54 @@
+#!/bin/sh
+
+libc_prefix="PPPP"
+ldso_pathname="PPPP/lib/ld-musl-AAAA.so.1"
+gcc=rawcc
+libc_lib=$libc_prefix/lib
+libc_inc=$libc_prefix/include
+libc_crt="$libc_lib/crt1.o"
+libc_start="$libc_lib/crti.o"
+libc_end="$libc_lib/crtn.o"
+
+tmp_specs=$HOME/.specs.tmp.$$
+printf '
+%%rename cpp_options old_cpp_options
+
+*cpp_options:
+-nostdinc -isystem %s %%(old_cpp_options)
+
+*cc1:
+%%(cc1_cpu) -nostdinc -isystem %s 
+
+*link_libgcc:
+-L%s
+
+*libgcc:
+libgcc.a%%s %%:if-exists(libgcc_eh.a%%s)
+
+*startfile:
+%%{!shared: %s} %s %%{shared|pie:crtbeginS.o%%s;:crtbegin.o%%s}
+
+*endfile:
+%%{shared|pie:crtendS.o%%s;:crtend.o%%s} %s
+
+%%rename link old_link
+
+*link:
+%%(old_link) -dynamic-linker %s -nostdlib
+
+*esp_link:
+
+
+*esp_options:
+
+
+*esp_cpp_options:
+
+
+' \
+ "$libc_inc" "$libc_inc" "$libc_lib" "$libc_crt" "$libc_start" "$libc_end" "$ldso_pathname" > "$tmp_specs" || exit 1
+
+exec 3<"$tmp_specs"
+rm -f "$tmp_specs"
+
+exec "$gcc" -Wl,-rpath=$libc_lib -Werror-implicit-function-declaration -specs=/proc/self/fd/3 "$@"

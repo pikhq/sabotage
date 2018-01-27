@@ -1,0 +1,24 @@
+[mirrors]
+https://swupdate.openvpn.org/community/releases/openvpn-2.4.3.tar.xz
+
+[vars]
+filesize=938440
+sha512=b92ec769f672fa7c7a70985535754c566891f94774e4bc3aeb2141b3c168783aebeb82341635d3708978dd3254708221e2ddaae9919d4cf398318fff7d01c926
+pkgver=2
+
+[deps]
+libressl
+lzo
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --disable-plugin-auth-pam
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

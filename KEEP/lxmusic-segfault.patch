@@ -1,0 +1,13 @@
+--- lxmusic-0.4.5.org/src/lxmusic.c	2012-11-05 00:29:47.000000000 +0000
++++ lxmusic-0.4.5/src/lxmusic.c	2012-11-05 00:29:53.000000000 +0000
+@@ -1900,8 +1900,8 @@
+                     gtk_list_store_set(list_store, &it, COL_WEIGHT, PANGO_WEIGHT_BOLD, -1);
+ 
+ 		    /* update id of currently played track */
+-		    xmmsv_dict_get( val, "id", &int_value );
+-		    xmmsv_get_int( int_value, &cur_track_id );
++		    if(xmmsv_dict_get( val, "id", &int_value ))
++			    xmmsv_get_int( int_value, &cur_track_id );
+                 }
+ 		/* scroll to currently played song */
+ 		gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(playlist_view), path, NULL, FALSE, 0.0, 0.0 );

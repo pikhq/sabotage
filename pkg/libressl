@@ -1,0 +1,26 @@
+[mirrors]
+http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-2.4.5.tar.gz
+http://ftp.ch.openbsd.org/pub/OpenBSD/LibreSSL/libressl-2.4.5.tar.gz
+
+[vars]
+filesize=3016462
+sha512=bdbd0fcb868e77e5fba26da7653fe6e7f7b5017455e1beb13e11b42b8db0742b9ca6442f0949adc91ddc1f53fb93549a6c0529795cd34db2bf887cbca2d33070
+pkgver=4
+desc="tls and crypto library. replaces openssl"
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags --disable-hardening
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

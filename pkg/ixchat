@@ -1,0 +1,34 @@
+[mirrors]
+http://ftp.barfooze.de/pub/sabotage/tarballs/ixchat-3.0.4.tar.xz
+http://foss.aueb.gr/mirrors/linux/sabotage/tarballs/ixchat-3.0.4.tar.xz
+http://dl.2f30.org/mirrors/sabotage/tarballs/ixchat-3.0.4.tar.xz
+
+[vars]
+filesize=410676
+sha512=d8c355a81301069aae7c08e6c128e86d9ad5cb33a094ab15f579fd19c1f858020b9ed33664cb664c37746a8c7d36152b6f96fb3e94ba62ad606770d8f4ea832f
+desc='GTK+ IRC client based on latest xchat2 release + some hexchat backports'
+
+[deps]
+gtk+2
+libressl
+
+[deps.host]
+gdk-pixbuf
+
+[deps.none]
+perl
+python
+
+[build]
+#PERL_CFLAGS="-D_BSD_SOURCE -I$butch_root_dir$butch_prefix/lib/perl5/core_perl/CORE" \
+#PERL_LDFLAGS="-lperl -L$butch_root_dir$butch_prefix/lib/perl5/core_perl/CORE" \
+#PY_CFLAGS="-I$butch_root_dir$butch_prefix/include/python2.7" \
+#PY_LDFLAGS="-lpython2.7" \
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure --prefix="$butch_prefix" \
+  --disable-perl \
+  --disable-python \
+  --disable-tcl
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

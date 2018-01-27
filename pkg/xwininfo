@@ -1,0 +1,19 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/app/xwininfo-1.1.3.tar.bz2
+
+[vars]
+filesize=157512
+sha512=b4c3c72de157d33e309694be96dcafabb3240c1883fb3caf44843cba8b90fe09496eb4ab061eba9107115d76ca59a8ec660e11ff968e422ab35cd5e1749ca466
+
+[deps]
+libx11
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

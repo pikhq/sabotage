@@ -1,0 +1,27 @@
+[vars]
+filesize=15057
+sha512=e54fd10c0b1274eb90173aea442f0bfc496f4dda861a36d94f939e1fd835594f9aa12f3d0f90043d64e519d919b9a5273ab65012230ac022f727ee6bb64862e3
+
+[mirrors]
+http://dl.suckless.org/tools/dmenu-4.6.tar.gz
+
+[deps]
+freetype
+libx11
+libxcb
+libxau
+libxdmcp
+libxinerama
+libxft
+
+[build]
+cp "$K/dmenu.config.mk" config.mk
+cat << EOF >> config.mk
+CC=$CC
+CFLAGS += $optcflags -I$butch_root_dir$butch_prefix/include/freetype2
+X11INC = $butch_root_dir$butch_prefix/include/X11
+X11LIB = $butch_root_dir$butch_prefix/lib
+LDFLAGS+=-Wl,-rpath-link=$butch_root_dir$butch_prefix/lib
+EOF
+make V=1 -j$MAKE_THREADS PREFIX="$butch_prefix" \
+DESTDIR="$butch_install_dir" all install

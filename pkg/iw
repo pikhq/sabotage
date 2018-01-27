@@ -1,0 +1,26 @@
+[mirrors]
+http://cdn.kernel.org/pub/software/network/iw/iw-4.9.tar.xz
+ftp://www.kernel.org/pub/software/network/iw/iw-4.9.tar.xz
+https://www.kernel.org/pub/software/network/iw/iw-4.9.tar.xz
+http://ftp.free.fr/mirrors/ftp.kernel.org/software/network/iw/iw-4.9.tar.xz
+
+[vars]
+filesize=105764
+sha512=3c99d8fc07d6d85b8304ff34b96573e22af65aea688a8cb08051ce4857d7ce9ac32a5acd3b30157c6c78e942f84a18f9229c17e353b7a6d01c80324729af18b3
+pkgver=2
+
+[deps]
+libnl-tiny
+
+[deps.host]
+pkgconf
+
+[build]
+patch -p1 < "$K"/iw-libnl-tiny.patch
+CFLAGS="-D_GNU_SOURCE -I$butch_prefix/include/libnl-tiny \
+  -DCONFIG_LIBNL20 -DLIBNL1_COMPAT \
+  -D__int32_t=int32_t -D__int16_t=int16_t -D__uint8_t=uint8_t \
+  -D__uint32_t=uint32_t -D__uint16_t=uint16_t \
+  -include stdint.h $optcflags" \
+  LDFLAGS="$optldflags" make -j$MAKE_THREADS V=1
+make PREFIX="$butch_prefix" SBINDIR="$butch_prefix"/bin DESTDIR="$butch_install_dir" install

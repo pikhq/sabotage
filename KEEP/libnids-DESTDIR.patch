@@ -1,0 +1,11 @@
+--- libnids-1.24.org/src/Makefile.in	2014-08-12 22:24:04.064280392 +0200
++++ libnids-1.24/src/Makefile.in	2014-08-12 23:08:01.444284562 +0200
+@@ -6,7 +6,7 @@
+ srcdir		= @srcdir@
+ VPATH		= @srcdir@
+ 
+-install_prefix	=
++install_prefix	= $(DESTDIR)
+ prefix		= @prefix@
+ exec_prefix	= @exec_prefix@
+ includedir	= @includedir@

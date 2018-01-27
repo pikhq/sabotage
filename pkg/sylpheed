@@ -1,0 +1,19 @@
+[mirrors]
+http://sylpheed.sraoss.jp/sylpheed/v3.5/sylpheed-3.5.1.tar.bz2
+
+[vars]
+filesize=3561816
+sha512=264aafb40eaa163405074480b2deb7eefe0d2158a107d9b26bc35d5506dcf5a52cf5712b81bd4c06b4c76e48c6e372c74473e5371bbdc80f230267f3b211c7f5
+pkgver=2
+uchkurl='http://sylpheed.sraoss.jp/en/'
+
+[deps]
+gtk+2
+
+[build]
+
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix"
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

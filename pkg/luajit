@@ -1,0 +1,61 @@
+[mirrors]
+http://luajit.org/download/LuaJIT-2.1.0-beta2.tar.gz
+
+[vars]
+filesize=942597
+sha512=ef04db5bee66a6e24da8d488df2c035c9593792dca4cb49955d673281a7c7b00ab40f4a63e699959461da7fb0732cf81ec46808c33b66ae1eaca4ef94d0b61e3
+pkgver=1
+
+[deps]
+
+[build]
+sed -i 's,export PREFIX=,-include config.mak #,' Makefile
+echo "export PREFIX = $butch_prefix" > config.mak
+echo "export DESTDIR = $butch_install_dir" >> config.mak
+make CFLAGS=-D_GNU_SOURCE Q= -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+
+if [ -n "$LUAJIT_REPLACE_LUA" ] ; then
+
+mkdir -p "$dest"/include/lua
+( cd "$dest"/include/luajit-2.0/
+  for i in *.h ; do
+	ln -sf ../luajit-2.0/"$i" "$dest"/include/lua/
+  done
+)
+
+ln -s libluajit-5.1.so.2.0.2 "$dest"/lib/liblua.so
+ln -s libluajit-5.1.a "$dest"/lib/liblua.a
+ln -s libluajit-5.1.so.2.0.2 "$dest"/lib/libluajit-5.1.so.2
+ln -s libluajit-5.1.so.2.0.2 "$dest"/lib/libluajit-5.1.so
+
+cat << EOF > "$dest"/lib/pkgconfig/lua.pc
+majver=5
+minver=1
+relver=0
+version=\${majver}.\${minver}.\${relver}
+abiver=5.1
+
+prefix=$butch_prefix
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+libname=lua
+includedir=\${prefix}/include/lua
+
+INSTALL_LMOD=\${prefix}/share/lua/\${abiver}
+INSTALL_CMOD=${prefix}/lib/lua/${abiver}
+
+Name: lua
+Description: Just-in-time compiler for Lua
+URL: http://luajit.org
+Version: \${version}
+Requires:
+Libs: -L\${libdir} -l\${libname}
+Libs.private: -Wl,-E -lm -ldl
+Cflags: -I\${includedir}
+
+EOF
+
+fi

@@ -1,0 +1,45 @@
+[mirrors]
+https://github.com/magnumripper/JohnTheRipper/archive/d1daf24.tar.gz
+
+[vars]
+filesize=34719213
+sha512=6c08271a79f99819c4a1f58388c0a581ac0cab573d833fb699d5746ebc600d34b09b319e7efca0a1abbff2ab9895aa20048a7ae1385095e29c5e59ebea15400b
+pkgver=2
+tarball=JohnTheRipper-1.8.0.6-jumbo-git-d1daf24.tar.gz
+tardir=JohnTheRipper-d1daf24a41ec8a0236dc00dfecba7d57fb99a6a9
+desc='password hash cracker'
+
+[deps]
+libressl
+
+[build]
+patch -p1 < "$K"/john-sha0.patch
+patch -p1 < "$K"/john-wpa-bug.patch
+
+cd src
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS LIBS="-lssl -lcrypto"
+cd ..
+
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/share/john "$dest"/bin
+for i in run doc README* ; do
+	cp -ra "$i" "$dest"/share/john/
+done
+cat << EOF > "$dest"/bin/john
+#!/bin/sh
+echo "to run john the ripper, cd into /share/john/run and run the tools from there!"
+exit 1
+EOF
+chmod +x "$dest"/bin/john
+

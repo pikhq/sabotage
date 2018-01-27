@@ -1,0 +1,11 @@
+--- a/xpcom/ds/nsMathUtils.h
++++ b/xpcom/ds/nsMathUtils.h
+@@ -104,7 +104,7 @@
+ #ifdef WIN32
+   // NOTE: '!!' casts an int to bool without spamming MSVC warning C4800.
+   return !!_finite(aNum);
+-#elif defined(XP_DARWIN)
++#elif 1
+   // Darwin has deprecated |finite| and recommends |isfinite|. The former is
+   // not present in the iOS SDK.
+   return std::isfinite(aNum);

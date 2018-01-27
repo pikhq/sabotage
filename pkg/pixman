@@ -1,0 +1,25 @@
+[deps.host]
+perl
+
+[mirrors]
+http://cairographics.org/releases/pixman-0.30.2.tar.gz
+http://distfiles.lesslinux.org/pixman-0.30.2.tar.gz
+http://cairographics.org/releases/pixman-0.30.2.tar.gz
+http://www.x.org/releases/individual/lib/pixman-0.30.2.tar.gz
+
+[vars]
+filesize=799461
+sha512=a86f4b7cbd8440d28a47773edf1a2055898b2d65501cba42b22f70af377ffa5beff1a2f695009e708640e6c98cf54f069560dcaa98ce308157baa6d139e57d56
+
+[build]
+cp -f "$K"/config.sub .
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > test/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --disable-sse2 --disable-mmx --disable-arm-neon --disable-arm-simd --disable-arm-iwmmxt"
+
+CFLAGS="-DPIXMAN_NO_TLS $optcflags" ./configure -C --prefix="$butch_prefix" \
+  --disable-loongson-mmi $xconfflags
+sed -i -e '/TOOLCHAIN_SUPPORTS_ATTRIBUTE_CONSTRUCTOR/d' -e '/TOOLCHAIN_SUPPORTS__THREAD/d' config.h
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

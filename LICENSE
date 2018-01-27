@@ -1,4 +1,5 @@
 The following applies to all build-scripts, patches and documentation,
+originating from Christian Neukirchen,
 but of course not to the software packaged:
 
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -18,3 +19,11 @@ iEYEARECAAYFAk2sbo0ACgkQZU3w2bwbBMh9aACfR9Nb6yqKhkdZ24PejibPadCP
 xOYAoJ+P5nlWXzGjEi/AjevPrZVp5zU1
 =0XCv
 -----END PGP SIGNATURE-----
+
+The same License applies to build-scripts, patches and documentation,
+originating from other contributors, as far as applicable by law.
+
+Giving credits is not required, but appreciated.
+If you want to do so, please add the following line as a comment:
+
+# taken from https://github.com/sabotage-linux/sabotage

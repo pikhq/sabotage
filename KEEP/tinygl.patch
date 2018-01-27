@@ -1,0 +1,107 @@
+diff --git a/examples/spin.c b/examples/spin.c
+index 339bf00..3353668 100644
+--- a/examples/spin.c
++++ b/examples/spin.c
+@@ -10,6 +10,7 @@
+ 
+ #include <math.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ 
+ #include <GL/glx.h> 
+ #include <GL/gl.h> 
+diff --git a/src/api.c b/src/api.c
+index d5df704..27f2d70 100644
+--- a/src/api.c
++++ b/src/api.c
+@@ -444,12 +444,13 @@ void glLightf(int light,int type,float v)
+ void glLightModeli(int pname,int param)
+ {
+   GLParam p[6];
+-  int i;
+ 
+   p[0].op=OP_LightModel;
+   p[1].i=pname;
+   p[2].f=(float)param;
+-  for(i=0;i<4;i++) p[3+i].f=0;
++  p[3].f=0;
++  p[4].f=0;
++  p[5].f=0;
+ 
+   gl_add_op(p);
+ }
+diff --git a/src/glx.c b/src/glx.c
+index 2c01812..f904c8f 100644
+--- a/src/glx.c
++++ b/src/glx.c
+@@ -115,7 +115,7 @@ static int create_ximage(TinyGLXContext *ctx,
+ {
+   int major,minor;
+   Bool pixmaps;
+-  unsigned char *framebuffer;
++  char *framebuffer;
+   int (*old_handler)(Display *,XErrorEvent *);
+ 
+   if (XShmQueryVersion(ctx->display,&major,&minor,&pixmaps))
+@@ -301,7 +301,7 @@ Bool glXMakeCurrent( Display *dpy, GLXDrawable drawable,
+ 
+       /* Open the Z Buffer - 256 colors */
+       zb=ZB_open(xsize,ysize,ZB_MODE_INDEX,ZB_NB_COLORS,
+-                 color_indexes,palette,NULL);
++                 color_indexes,(int*)palette,NULL);
+       if (zb == NULL) {
+         fprintf(stderr, "Error while initializing Z buffer\n");
+         exit(1);
+diff --git a/src/vertex.c b/src/vertex.c
+index b194e97..c9e7c8b 100644
+--- a/src/vertex.c
++++ b/src/vertex.c
+@@ -1,4 +1,5 @@
+ #include "zgl.h"
++#include <string.h>
+ 
+ void glopNormal(GLContext * c, GLParam * p)
+ {
+diff --git a/src/zbuffer.c b/src/zbuffer.c
+index c0b0fae..1a498f1 100644
+--- a/src/zbuffer.c
++++ b/src/zbuffer.c
+@@ -243,15 +243,16 @@ static void ZB_copyFrameBufferRGB24(ZBuffer * zb,
+                                     int linesize)
+ {
+     unsigned short *q;
+-    unsigned int *p, *p1, w0, w1, w2, v0, v1;
++    unsigned int *p, w0, w1, w2, v0, v1;
++    union { unsigned int* i; char* c; } p1;
+     int y, n;
+ 
+     q = zb->pbuf;
+-    p1 = (unsigned int *) buf;
++    p1.i = (unsigned int *) buf;
+     linesize = linesize * 3;
+ 
+     for (y = 0; y < zb->ysize; y++) {
+-	p = p1;
++	p = p1.i;
+ 	n = zb->xsize >> 2;
+ 	do {
+ 	    v0 = *(unsigned int *) q;
+@@ -265,7 +266,7 @@ static void ZB_copyFrameBufferRGB24(ZBuffer * zb,
+ 	    p += 3;
+ 	} while (--n > 0);
+ 
+-	(char *) p1 += linesize;
++	p1.c += linesize;
+     }
+ }
+ 
+diff --git a/src/zmath.h b/src/zmath.h
+index a475b95..4fb7eb0 100644
+--- a/src/zmath.h
++++ b/src/zmath.h
+@@ -50,4 +50,4 @@ V4 gl_V4_New(float x,float y,float z,float w);
+ 
+ int gl_Matrix_Inv(float *r,float *m,int n);
+ 
+-#endif  __ZMATH__
++#endif

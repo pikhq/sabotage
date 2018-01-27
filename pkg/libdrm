@@ -1,0 +1,20 @@
+[mirrors]
+http://dri.freedesktop.org/libdrm/libdrm-2.4.80.tar.bz2
+
+[vars]
+filesize=771243
+sha512=478f64bcc6f4815368ae86d023f11ba6b37595bb9d8baa588b466c6c0e2aae48a50a489137750ed21fbabef5afabf183c78c152eb770bfe316fa7401b191a30b
+pkgver=3
+
+[deps]
+libpciaccess
+libpthread-stubs
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-cairo-tests
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

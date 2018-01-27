@@ -1,0 +1,26 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/pangomm/2.28/pangomm-2.28.4.tar.xz
+
+[vars]
+filesize=796212
+sha512=85e327f5a85417c209cdffe52e5b776878233762e894d8bc6c353378cae9bec6d7f4181d21cf690c32d15ff7ac87272f1abd75352c3a73af9f98f1551df88a79
+desc='C++ bindings for the pango library'
+
+[deps]
+pango
+glibmm
+cairomm
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+for i in docs ; do
+        printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

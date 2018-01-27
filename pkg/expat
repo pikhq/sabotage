@@ -1,4 +1,20 @@
-tarxf http://sourceforge.net/projects/expat/files/expat/2.0.1/ expat-2.0.1 .tar.gz
-CFLAGS=-D_GNU_SOURCE ./configure --prefix=/ --disable-shared --mandir=/share/man
-make
-make DESTDIR=$R install
+[mirrors]
+http://sourceforge.net/projects/expat/files/expat/2.2.5/expat-2.2.5.tar.bz2
+
+[vars]
+filesize=510868
+sha512=8226970a7e5d2b8d7818081758ca59bb6ce2d655feaa9d3a92481629000b73fde4782f50343d58ec4e1cebe75649e1980f636775a731d8aa4b55ceb843d9f637
+pkgver=5
+desc='library to interface with XML files'
+uchkurl=https://sourceforge.net/projects/expat/files/expat/
+
+[deps]
+musl
+
+[build]
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" \
+  --mandir="$butch_prefix"/share/man $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

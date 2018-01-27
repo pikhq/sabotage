@@ -1,0 +1,37 @@
+[mirrors]
+http://freedesktop.org/~hadess/shared-mime-info-1.7.tar.xz
+
+[vars]
+filesize=582172
+sha512=008745fe23cf751d2fd7f701ffdaaf22eff2c2e37b77455b94c26c718839f681654577035330f740429c862b8060939f9932f313b452ac885bf811dacce3eb78
+pkgver=2
+
+[deps]
+glib
+libxml2
+
+[build]
+. "$K"/intltool-fix
+
+mkdir .deps
+touch .deps/update_mime_database-update-mime-database.Tpo
+
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags --disable-nls
+
+sed -i 's@$(AM_V_at)$(am__mv) $(DEPDIR)/update_mime_database-update-mime-database.Tpo@#@' Makefile
+
+for i in po ; do
+        printf 'check:\n\ttrue\n\nall:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n\n' > "$i"/Makefile
+done
+
+# FIXME makefile is buggy and breaks randomly with multiple processes
+make -j1 V=1
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/lib/pkgconfig
+mv "$dest"/share/pkgconfig/* "$dest"/lib/pkgconfig/
+rm -rf "$dest"/share/pkgconfig
+

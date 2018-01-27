@@ -1,0 +1,15 @@
+[mirrors]
+http://downloads.sourceforge.net/project/v4l-lib/Luvcview/luvcview-20070512.tar.gz
+
+[vars]
+filesize=89405
+sha512=2efd7221fb6edbdc327b79859b0f2e33f87574f7201a62d1b6b0a32d3cfd48281943744a7e3c752096af3f1fcc0f3b0631e9ac378f60ffd323bfe72c0d4c273d
+
+[deps]
+sdl
+
+[build]
+sed -i 's@linux/videodev.h@linux/videodev2.h@g' *.[ch]
+make V=1 -j$MAKE_THREADS BIN="$butch_prefix"/bin \
+  SDLLIBS=-lSDL SDLFLAGS= CFLAGS="-DVERSION=\\\"0.2.1\\\" -D_GNU_SOURCE $optcflags $optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib"
+install -Dm 755 luvcview "$butch_install_dir$butch_prefix"/bin/luvcview

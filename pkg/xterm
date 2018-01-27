@@ -1,0 +1,46 @@
+[mirrors]
+ftp://ftp.invisible-island.net/xterm/xterm-330.tgz
+
+[vars]
+filesize=1273183
+sha512=3886745179ebabc10feea401444a153dc3f9e5f4c91da381870857fe21f514e0e975193af498b7c2b365602f833dd08e6c706e25cfc1e687d565125672136b62
+pkgver=5
+desc='old school X terminal emulator'
+
+[deps]
+libx11
+libxaw
+libxft
+curses
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+# Gleiches mit gleichem vergelten.
+CFLAGS="-include termcap.h -DUSE_TERMCAP -DOK=0 -g -D__GNU__ -D__GLIBC__=2 -D__GLIBC_MINOR__=10 -D_POSIX_SOURCE -D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C \
+  --prefix="$butch_prefix" \
+  --mandir=/share/man \
+  --enable-256-color \
+  --enable-wide-chars \
+  --disable-tek4014 \
+  --disable-active-icon \
+  --disable-builtin-xpms \
+  --without-xpm \
+  ac_cv_header_lastlog_h=no cf_cv_path_lastlog=no \
+  ac_cv_header_termcap_h=yes $xconfflags
+cat <<EOF >>ptyx.h
+#ifndef HACKY_HACKY_GETPT
+#define HACKY_HACKY_GETPT
+static inline int getpt() { return open("/dev/ptmx",O_RDWR|O_NOCTTY); }
+#endif
+EOF
+touch curses.h
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/share/applications/
+cp -f xterm.desktop "$dest"/share/applications/
+# replace the ugly 70ies xterm icon with a nice one
+sed -i 's@xterm-color_48x48@terminal@' "$dest"/share/applications/xterm.desktop

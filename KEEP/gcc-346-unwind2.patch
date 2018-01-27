@@ -1,0 +1,10 @@
+--- gcc-3.4.6.org/gcc/unwind-dw2.c	2013-04-12 03:07:51.551000002 +0000
++++ gcc-3.4.6/gcc/unwind-dw2.c	2013-04-12 03:08:08.413000003 +0000
+@@ -28,6 +28,7 @@
+    Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+    02111-1307, USA.  */
+ 
++#define _GNU_SOURCE
+ #include "tconfig.h"
+ #include "tsystem.h"
+ #include "coretypes.h"

@@ -1,0 +1,23 @@
+[mirrors]
+http://www.freedesktop.org/software/startup-notification/releases/startup-notification-0.12.tar.gz
+http://downloads.yoctoproject.org/mirror/sources/startup-notification-0.12.tar.gz
+
+[vars]
+filesize=355285
+sha512=ea1246acdb50dafd9ced9914ec3c8f0d499c0ca3cfd447b43a444c768a6e9ea7135e5c42d9ca0089354698ac235bd86d42f12c70a3a17c9c79f998c07461f7ab
+
+[deps]
+libxcb
+xcb-util
+libx11
+
+[build]
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > test/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  lf_cv_sane_realloc=yes
+patch -p1 < "$K"/libtool-sysroot.patch
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

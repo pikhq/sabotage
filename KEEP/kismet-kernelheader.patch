@@ -1,0 +1,13 @@
+--- kismet-2013-03-R1b.org/dumpfile_tuntap.h
++++ kismet-2013-03-R1b/dumpfile_tuntap.h
+@@ -64,7 +64,9 @@
+ #include "packetchain.h"
+ #include "dumpfile.h"
+ 
+-#ifdef SYS_LINUX 
++#ifdef SYS_LINUX
++#include <netinet/if_ether.h> /* include before first kernel header to make
++libc-compat.h do its magic (otherwise struct ethhdr gets redefined) */
+ #include <linux/if_tun.h>
+ 
+ // Linux IEEE80211 link typ to set

@@ -1,0 +1,28 @@
+[mirrors]
+ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.17.tar.xz
+http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.17.tar.xz
+
+[vars]
+filesize=6709492
+sha512=a0a578034e8092dd422dc310a655fda3c4a2de5cb06745d9b47bb39734cb983902553b56dfbbabc618b3824defc62489b1b3c8de3b824b97b28273ddedd06ea7
+pkgver=4
+desc='C library implementing the SSL, TLS and DTLS protocols'
+
+[deps]
+libnettle
+libtasn1
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+sed -i 's@LIBGNUTLS_LIBS=.*$@LIBGNUTLS_LIBS="-lgnutls $LIBS"@' configure
+sed -i 's@LIBGNUTLS_CFLAGS=.*$@LIBGNUTLS_CFLAGS=@' configure
+CPPFLAGS=-D_GNU_SOURCE \
+CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls \
+  --without-p11-kit
+make V=1 -j$MAKE_THREADS CPPFLAGS=-D_GNU_SOURCE
+make DESTDIR="$butch_install_dir" install

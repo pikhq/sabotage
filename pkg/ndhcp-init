@@ -1,0 +1,85 @@
+[deps]
+ndhcp
+
+[build]
+
+# note : do not run this script in a sabotage chroot
+# it is intended to be used *once* inside a running sabotage system
+# for primary setup of ndchp
+# after it's done use /etc/rc.dhcp start/stop to use it
+
+# bluntly copied from ndhcp README
+#    a) Become root and create new group "ifchd".
+
+#        $ su -
+         umask 077
+         groupadd ifchd
+
+#    b) Create new users "ifchd" and "dhcp".  The primary group of these
+#       users should be "ifchd".
+
+         useradd -d /var/lib/ndhc -s /sbin/nologin -g ifchd ifchd
+         useradd -d /var/lib/ndhc -s /sbin/nologin -g ifchd dhcp
+
+#    b) Create the jail directory and set its ownership properly.
+
+         mkdir /var/lib/ndhc
+         chown root.root /var/lib/ndhc
+         chmod a+rx /var/lib/ndhc
+         cd /var/lib/ndhc
+         mkdir var
+         mkdir var/state
+         mkdir var/run
+         chown -R ifchd.ifchd var
+         chmod -R a+rx var
+         chmod g+w var/run
+
+#    c) Create a urandom device for ndhc to use within the jail.
+
+         mkdir dev
+         mknod dev/urandom c 1 9
+         mknod dev/null c 1 3
+         chown -R root.root dev
+         chmod a+rx dev
+         chmod a+r dev/urandom
+         chmod a+rw dev/null
+
+#        d) (optional) If you wish for logging to properly work, you
+#           will need to properly configure your logging daemon so that it
+#           opens a domain socket in the proper location within the jail.
+#           Since this varies per-daemon, I cannot provide a general
+#           configuration.
+
+#3)  At this point the jail is usable; ifchd and ndhc are ready to
+#    be used.  As an example of a sample configuration, here is my
+#    rc.dhcp:
+
+#--START--
+
+cat << EOF > /etc/rc.dhcp
+#!/bin/sh
+case "\$1" in
+        start)
+                ifchd -i wan0 -p /var/run/ifchd.pid -u ifchd -g ifchd -U dhcp \
+                      -G ifchd -c /var/lib/ndhc &> /dev/null
+                ndhc -b -i wan0 -u dhcp -C /var/lib/ndhc &> /dev/null
+                ;;
+        stop)
+                killall ndhc ifchd
+                ;;
+esac
+EOF
+chmod +x /etc/rc.dhcp
+
+#--END--
+
+#    This script works fine with my personal machines, which are set up
+#    exactly as I have outlined above.  If you have not entirely followed my
+#    directions, the script will of course require modifications.
+
+#4o) If you encounter problems, I suggest running both ifchd and ndhc in the
+#    foreground and examining the printed output.
+
+echo done, if everything worked as expected you should be able to run /etc/rc.dhcp start
+
+exit 0

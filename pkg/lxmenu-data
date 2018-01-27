@@ -1,0 +1,16 @@
+[mirrors]
+http://downloads.sourceforge.net/project/lxde/lxmenu-data%20%28desktop%20menu%29/lxmenu-data%200.1.4/lxmenu-data-0.1.4.tar.xz
+
+[vars]
+filesize=179180
+sha512=2aa8949504e981582b8e94d999a3f3e4876750ee6244d63b585bb0553c5f584401c952682d7eb524ab87dd36f6e22a8b849f5f15559a40f5edfff3d7aa6eb244
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

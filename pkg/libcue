@@ -1,0 +1,18 @@
+[vars]
+filesize=249426
+sha512=1efbe4ff2d7bf1716547c9377a8eefefd5392ce9fa62ee07bc948fc5b8832cefeecebf655a40e49eefe4ec857978dfee5a66a0439e36e4440e0ec472e2226ddb
+
+[mirrors]
+http://downloads.sourceforge.net/project/libcue/libcue/1.4.0/libcue-1.4.0.tar.bz2
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,8 +1,0 @@
-cd $S
-rm -rf musl
-git clone git://git.etalabs.net/musl
-cd musl
-cp $K/musl.config.mak config.mak
-
-make CC=$R/bin/gcc
-make install

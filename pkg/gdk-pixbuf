@@ -1,0 +1,52 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.33/gdk-pixbuf-2.33.1.tar.xz
+
+[vars]
+filesize=2709492
+sha512=acc8c31c2436b6cce7eb1b93061d00aa231ffc8a19c247aa90d270d0cf67cfbd4a3c503d44451f16ba9a4424a97ffe5748271ef8985f7dd8c6996273df8769c1
+
+[deps]
+libtiff
+libjpeg
+libpng
+glib
+xz
+
+[deps.host]
+perl
+
+[build]
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\nclean:\n\ttrue\n\ndistclean:\n\ttrue" > tests/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib -lz" \
+  ./configure -C \
+  --prefix="$butch_prefix" \
+  --disable-introspection \
+  --disable-nls $xconfflags gio_can_sniff=yes
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+dest2="$dest"/include/gdk-pixbuf-2.0/gdk-pixbuf-xlib/
+mkdir -p "$dest2"
+cp -r contrib/gdk-pixbuf-xlib/*.h "$dest2"
+
+# make fails to generate the file loaders.cache which is crucial to have,
+# otherwise gdk-pixbuf will not function at all and only print misleading
+# "Couldn't recognize the image file format ..." error messages
+# the makefile uses gdk-pixbuf-query-loaders on libpixbufloader-*.la,
+#  and since these point to prefix, the referenced .so files are not found.
+
+if [ -z "$CROSS_COMPILE" ] ; then
+LD_LIBRARY_PATH="$butch_prefix/lib:$dest/lib" \
+"$dest"/bin/gdk-pixbuf-query-loaders "$dest"/lib/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-*.so \
+  > "$dest"/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+
+sed -i 's,^"'"$dest"',",g' "$dest"/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+else
+	echo "XXXXXXXXXX WARNING: need to run gdk-pixbuf-query-loaders on target fs XXXXXXXXXX"
+fi
+
+

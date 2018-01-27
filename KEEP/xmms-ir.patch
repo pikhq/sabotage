@@ -1,0 +1,15 @@
+--- xmms-1.2.6.org/General/ir/ir.c	2013-01-02 22:46:18.503000002 +0000
++++ xmms-1.2.6/General/ir/ir.c	2013-01-02 23:14:11.623000004 +0000
+@@ -16,10 +16,10 @@
+ #include "ir.h"
+ 
+ /* Important stuff to know */
+-static gboolean keepGoing = FALSE;
++gboolean keepGoing = FALSE;
+ 
+ /* The thread handle */
+-static pthread_t irapp_thread;
++pthread_t irapp_thread;
+ 
+ /* Declarations for calls that we need to mention in the plugin struct */
+ static void init(void);

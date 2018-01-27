@@ -1,0 +1,45 @@
+[mirrors]
+http://www.linuxtv.org/downloads/v4l-utils/v4l-utils-1.12.6.tar.bz2
+
+[vars]
+filesize=1588726
+sha512=1f6e7ba9513ea836d6536eaf2f148588e9a2beaab62c49fb295e60aae41382781f76d536e854bbe6fc601f00034e3239b551874dc99a1f6afa788ee94976b332
+pkgver=3
+
+[deps]
+argp
+glu
+
+[build]
+cat << EOF > gnu.h
+#ifndef TEMP_FAILURE_RETRY
+ #define TEMP_FAILURE_RETRY(expression) \
+   (__extension__                                  \
+     ({ long int __result;                             \
+        do __result = (long int) (expression);                     \
+        while (__result == -1L && errno == EINTR);                 \
+        __result; }))
+#endif
+#ifndef strndupa
+#define strndupa(__s, __n) \
+	(__extension__ ({const char *__in = (__s); \
+			 size_t __len = strnlen (__in, (__n)) + 1; \
+			 char *__out = (char *) __builtin_alloca (__len); \
+			 __out[__len-1] = '\0'; \
+			 (char *) memcpy (__out, __in, __len-1);}))
+#endif
+EOF
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE -D__off_t=off_t -D__off64_t=off_t -include gnu.h" \
+CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib -largp" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

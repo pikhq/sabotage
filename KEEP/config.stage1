@@ -1,3 +1,26 @@
-export K=/tmp/src/KEEP
-export S=/tmp/src
+export K=/src/KEEP
+export S=/src
 export R=/
+export C=/src/tarballs
+export LOGPATH=/src/logs
+#MAKE_THREADS is passed via -j to make and can lead to enormous speed gains
+#set this to the number of availables cores + 1, e.g. 3 for a dualcore
+export MAKE_THREADS=1
+[ -z "$CC" ] && export CC=gcc
+export HOSTCC="$CC"
+[ -z "$CXX" ] && export CXX=g++
+export HOSTCXX="$CXX"
+
+# set this if you don't want to build the kernel, only the headers
+# if you don't need the kernel anyway, this can save lots of time
+# mips and arm set this flag automatically
+#export SKIP_KERNEL_COMPILE=1
+
+# the build template used.
+# the default one creates packages in $R/opt/$package_name, uses a config.cache
+# and symlinks packages into the rootdir.
+export BUTCH_BUILD_TEMPLATE="$K"/butch_build_template.txt
+# download template. the default one uses wget.
+export BUTCH_DOWNLOAD_TEMPLATE="$K"/butch_download_template.txt
+# export so stage0 specific code paths are not taken in build scripts
+export STAGE=1

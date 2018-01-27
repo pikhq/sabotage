@@ -1,0 +1,18 @@
+[mirrors]
+
+[vars]
+
+[deps.host]
+perl
+
+[deps.run]
+perl
+
+[deps]
+
+[build]
+perl Makefile.PL
+make -j$MAKE_THREADS
+[ -z "$CROSS_COMPILE" ] && make test
+make DESTDIR="$butch_install_dir" install
+

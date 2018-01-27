@@ -1,18 +1,66 @@
-#!/bin/bash
+#!/bin/sh
+set -e
 
-set -e -x
-export H=$(pwd)
+### test and create prerequisites
+if [ ! -r config ] ; then
+	echo "error: config missing. please read README."
+	exit 1
+fi
+. ./config
+for i in sed wget patch bzip2 tar wc xz make ; do
+	if ! type "$i" >/dev/null 2>&1 ; then
+		echo "error: prerequisite $i not found in PATH" >&2
+		exit 1
+	fi
+done
+[ -z "$CC" ] && CC=gcc
+tmpc=/tmp/tmp$$.c
+cat <<- EOF > "$tmpc"
+	#include <stdlib.h>
+	int main () { exit(0); }
+	EOF
+if ! "$CC" -static "$tmpc" -o "$tmpc".out ; then
+	rm -f "$tmpc"
+	echo "error: could not create static binaries (install glibc-static if on fedora or suse?)" >&2
+	exit 1
+fi
+rm -f "$tmpc" "$tmpc".out
+mkdir -p "$C" 
 
-. $H/config
-. $H/utils/utils
+### initialize chroot, if missing
+if [ ! -d "$R"/bin ] ; then
+	echo "$(date +'%F %T') initializing root system"
 
-. $H/utils/prepare-root
+	. "$H"/utils/setup-rootfs.sh
 
-. $H/stage0/gcc3
-. $H/stage0/musl
-. $H/stage0/busybox
-. $H/stage0/binutils
-. $H/stage0/make
-. $H/stage0/mk
+	ln -s /proc/mounts "$R"/etc/mtab
 
-. $H/stage0/finish
+	"$H"/utils/update-chroot.sh
+		
+	# on ARM, gcc 3.4.6 is not sufficient to build for EABI
+	if [ "$A" = "arm" ] ; then
+		cat <<- EOF > "$S"/pkg/stage0-gcc
+		[deps.stage0]
+		stage0-gcc424
+		EOF
+		cat <<- EOF > "$S"/pkg/stage1-g++
+		[deps.stage1]
+		stage1-gcc424
+
+		[deps.stage2]
+		stage1-gcc424
+		EOF
+	fi
+fi
+
+### install stage0, if missing. note the space in "stage0 "
+if ! grep -q "stage0 " "$R"/var/lib/butch.db 2>/dev/null ; then
+	echo "$(date +'%F %T') installing stage0"
+
+	CONFIG="$H"/config BUTCHDB="$R"/var/lib/butch.db DEPS=build:stage0 \
+	   "$K"/bin/butch install stage0
+	
+	echo "export A=$A" > "$R"/src/config
+	cat "$K"/config.stage1 >> "$R"/src/config
+	[ -z "$MAKE_THREADS" ] || sed -i "s@MAKE_THREADS=1@MAKE_THREADS=$MAKE_THREADS@" "$R"/src/config
+fi

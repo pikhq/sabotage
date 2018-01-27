@@ -1,0 +1,24 @@
+--- lsof_4.87_src.org/Configure
++++ lsof_4.87_src/Configure
+@@ -5370,6 +5370,21 @@
+ fi	# }
+ rm -f ${LSOF_TMPC}.[cox]
+ 
++cat > $LSOF_TMPC.c << .LSOF_END_HERE_DOC2
++#include <rpc/pmap_prot.h>
++int main(){return 0;}
++.LSOF_END_HERE_DOC2
++echo $EO "Testing for rpc/pmap_prot.h, using $LSOF_CC ... $EC"
++$LSOF_CC ${LSOF_TMPC}.c -o ${LSOF_TMPC}.x > /dev/null 2>&1
++if test -x ${LSOF_TMPC}.x	# {
++then
++  echo "present"
++else
++  echo "missing"
++  LSOF_CFGF="$LSOF_CFGF -DHASNORPC_H"
++fi	# }
++rm -f ${LSOF_TMPC}.[cox]
++
+ # Make the dialect sources.
+ 
+ if test "X$LSOF_MKC" = "X"	# {

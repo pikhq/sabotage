@@ -1,0 +1,21 @@
+[deps.host]
+perl
+
+[deps.run]
+perl
+
+[deps]
+
+[mirrors]
+http://search.cpan.org/CPAN/authors/id/T/TI/TIMB/DBI-1.631.tar.gz
+
+[vars]
+filesize=589096
+sha512=7ed04167cfeb1f256613f06179d5280bbbf53e1d93d3306d5654f7278572f5cb131fb9ad16403cde05215c741cedd77e51b7cbdef15b5d4ea9dc79490775fa9e
+
+[build]
+perl Makefile.PL
+make -j$MAKE_THREADS
+[ -z "$CROSS_COMPILE" ] && make test
+make DESTDIR="$butch_install_dir" install
+

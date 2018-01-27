@@ -1,0 +1,26 @@
+[mirrors]
+http://kent.dl.sourceforge.net/project/lxde/LXShortcut%20%28edit%20app%20shortcut%29/LXShortcut%200.1.2/lxshortcut-0.1.2.tar.gz
+http://switch.dl.sourceforge.net/project/lxde/LXShortcut%20%28edit%20app%20shortcut%29/LXShortcut%200.1.2/lxshortcut-0.1.2.tar.gz
+
+[vars]
+filesize=224223
+sha512=0567c0ee77dbe7ea5f7d23e3ec2d3ba68f458bc9d8e4e5c8764bb53963eecf07d69dee2617f695b8d86dcb71916864c4e01dab12bd4b73db5366aebe24867e0c
+
+[deps]
+gtk+2
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+for i in po ; do
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

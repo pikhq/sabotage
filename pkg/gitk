@@ -1,0 +1,10 @@
+[deps]
+git
+
+[deps.run]
+tcl
+tk
+
+[vars]
+desc='graphical frontend to browse git repositories'
+

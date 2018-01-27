@@ -1,0 +1,21 @@
+[vars]
+filesize=210060
+sha512=dc6e949e73a3ce27103abd80c5011b885199a756f9625e52a9a4a9561cb339687cb49b7a0530e2b2cfa590bb76db0d0482d72a0390dfe75f9212d52016a1f150
+desc='emulator for gameboy, gameboy color and gameboy advance'
+
+[mirrors]
+http://ftp.barfooze.de/pub/sabotage/tarballs/VisualBoyAdvanceSDL-1.8.1.tar.xz
+http://foss.aueb.gr/mirrors/linux/sabotage/tarballs/VisualBoyAdvanceSDL-1.8.1.tar.xz
+http://dl.2f30.org/mirrors/sabotage/tarballs/VisualBoyAdvanceSDL-1.8.1.tar.xz
+
+[deps]
+sdl
+libpng
+zlib
+
+[build]
+make PROGS=VisualBoyAdvance \
+     CFLAGS="$optcflags" \
+     LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+     prefix="$butch_prefix" DESTDIR="$butch_install_dir" \
+     -j$MAKE_THREADS install

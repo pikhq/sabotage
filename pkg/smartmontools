@@ -1,0 +1,21 @@
+[mirrors]
+http://downloads.sourceforge.net/project/smartmontools/smartmontools/6.3/smartmontools-6.3.tar.gz
+
+[vars]
+filesize=809790
+sha512=59f13ca510618a65d4d227978fbcf9d0f67efbf75c425357ff79b283db650e1fc2ffb27cd37c32dc963c43130a2b982ef7b50e11673c92ae5a4369965fabe524
+desc='analyzation of hard disk health and status using S.M.A.R.T.'
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

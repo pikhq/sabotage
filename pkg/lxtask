@@ -1,0 +1,25 @@
+[mirrors]
+http://downloads.sourceforge.net/project/lxde/LXTask%20%28task%20manager%29/LXTask%200.1.x/lxtask-0.1.7.tar.xz
+
+[vars]
+filesize=137152
+sha512=eb5c6af2d0953d09d62b53efda1f88140cc6d5734ef98effd9a72b896e397d0c29ff4263b93c12fd23fcb0ec129b31eb769b0a8c769ae92ed9fc1d2f2689a4ef
+
+[deps]
+gtk+2
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+for i in po ; do
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,10 @@
+--- sweep-0.9.3.org/src/driver_alsa.c	2013-01-07 23:35:17.091000004 +0000
++++ sweep-0.9.3/src/driver_alsa.c	2013-01-07 23:36:06.998000004 +0000
+@@ -109,6 +109,7 @@
+   /* The standard command line options for this are -D or --device.
+    * The default fallback should be plughw.
+    */
++  names = g_list_append (names, "default");
+   names = g_list_append (names, "plughw:0,0");
+   names = g_list_append (names, "plughw:0,1");
+   names = g_list_append (names, "plughw:1,0");

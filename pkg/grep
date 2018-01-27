@@ -1,0 +1,22 @@
+[mirrors]
+ftp://mirrors.kernel.org/gnu/grep/grep-3.1.tar.xz
+http://mirrors.kernel.org/gnu/grep/grep-3.1.tar.xz
+
+[vars]
+filesize=1370880
+sha512=05494381c7dd8aad7e2ee4c17450de8d7b969a99dcfe17747db60df3475bf02d5323d091e896e8343e4f3251c29dc7f0b7a9f93c575c9d58ee2a57014c2c9d26
+pkgver=6
+desc='GNU grep with more features than busybox grep'
+no_unlink=1
+
+[deps]
+xz
+gettext
+
+[build]
+GNULIB_CPPFLAGS=$("$K"/gnulibfix lib)
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="-D_GNU_SOURCE $optcflags $GNULIB_CPPFLAGS" LDFLAGS="$optldflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

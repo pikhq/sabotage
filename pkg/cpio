@@ -1,0 +1,24 @@
+[vars]
+filesize=1018483
+sha512=b6ccb3e121ea29780219d21c9cd6267c2f7b7ae72fb899bb80e1c54cc33e9eac5363443d93dbfbe37e8e8d295dad2724ac607f0543cc62797919605f68c396aa
+
+[mirrors]
+http://ftp.gnu.org/gnu/cpio/cpio-2.11.tar.bz2
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+gl_cflags=$("$K"/gnulibfix gnu)
+CPPFLAGS="-D_GNU_SOURCE $gl_cflags" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  gl_cv_func_fdopendir_works=yes \
+  gl_cv_func_rmdir_works=yes \
+  gl_cv_func_sleep_works=yes \
+  --disable-silent-rules
+printf '#include_next <sys/stat.h>\n' > gnu/sys_stat.in.h
+make -j$MAKE_THREADS AR="$CROSS_COMPILE"ar RANLIB="$CROSS_COMPILE"ranlib
+make DESTDIR="$butch_install_dir" install

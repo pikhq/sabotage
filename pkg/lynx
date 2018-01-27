@@ -1,8 +1,31 @@
-tarxf http://lynx.isc.org/current/ lynx2.8.8dev.9 .tar.bz2 lynx2-8-8
+[mirrors]
+http://invisible-mirror.net/archives/lynx/tarballs/lynx2.8.9dev.16.tar.bz2
 
+[vars]
+filesize=2674662
+sha512=6aa5e869924c6e42aa68113985aecfb75dc6eb68d5d7db8cedb9843621d29c36c17078e7a692f472e3e7f1edf7ca666e3614bc3bdb092a3631877733d5e3d518
+pkgver=5
+desc='terminal web browser. supports HTTPS but not javascript'
+
+[deps]
+libressl
+curses
+ca-certificates
+
+[build]
+patch -p1 < "$K"/lynx-2.8.9-dev10-libressl.patch
+# fix gnu assumptions
+patch -p1 < "$K"/lynx-gzip.patch
 sed -i 's/define ACCEPT_ALL_COOKIES FALSE/define ACCEPT_ALL_COOKIES TRUE/' userdefs.h
 
-./configure --prefix=/ --sysconfdir=/etc --mandir=/share/man \
-  --with-ssl --disable-nls --enable-ipv6
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+
+CFLAGS="-D_GNU_SOURCE -I$butch_root_dir$butch_prefix/include/openssl $optcflags" \
+LDFLAGS="$optldflags" \
+LIBS="-lcurses -lterminfo -lssl -lcrypto -lz" \
+  ./configure -C --prefix="$butch_prefix" --sysconfdir="$butch_prefix"/etc --mandir="$butch_prefix"/share/man \
+  --with-ssl --disable-nls --enable-ipv6  $xconfflags
+#passing -jXXX to make has no effect on this pkg
 make
-make DESTDIR=$R install
+make DESTDIR="$butch_install_dir" install

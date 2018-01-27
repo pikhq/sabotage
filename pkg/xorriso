@@ -1,0 +1,30 @@
+[mirrors]
+https://www.gnu.org/software/xorriso/xorriso-1.4.8.tar.gz
+
+[vars]
+filesize=2670320
+sha512=11251cb05fd6139a867a495998e287c48b030720ba21e2b41c766e2e042f45b86ffac65bc81e08ce0bace23c1e9ccaa53997ef1267886a96a081597adf37d4e5
+pkgver=2
+desc='tool to manipulate iso filesystems and to burn cds, dvds, etc'
+
+[deps]
+libz
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -static --static -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+cat <<EOF > "$dest"/bin/mkisofs
+#!/bin/sh
+xorriso -as mkisofs $@
+EOF
+chmod +x "$dest"/bin/mkisofs

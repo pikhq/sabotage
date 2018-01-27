@@ -1,0 +1,53 @@
+--- wireless_tools.29.org/Makefile
++++ wireless_tools.29/Makefile
+@@ -4,20 +4,18 @@
+ 
+ ## Installation directory. By default, go in /usr/local.
+ ## Distributions should probably use /, but they probably know better...
+-ifndef PREFIX
+-  PREFIX = /usr/local
+-endif
++PREFIX ?= 
+ 
+-## Compiler to use (modify this for cross compile).
+-CC = gcc
++# Compiler to use (modify this for cross compile).
++CC ?= gcc
+ ## Other tools you need to modify for cross compile (static lib only).
+-AR = ar
+-RANLIB = ranlib
++AR ?= ar
++RANLIB ?= ranlib
+ 
+ ## Uncomment this to build tools using static version of the library.
+ ## Mostly useful for embedded platforms without ldd, or to create
+ ## a local version (non-root).
+-# BUILD_STATIC = y
++BUILD_STATIC ?= y
+ 
+ ## Uncomment this to build without using libm (less efficient).
+ ## This is mostly useful for embedded platforms without maths.
+@@ -25,7 +23,7 @@
+ 
+ ## Uncomment this to strip binary from symbols. This reduce binary size.
+ ## by a few percent but make debug worse...
+-# BUILD_STRIPPING = y
++BUILD_STRIPPING ?= y
+ 
+ ## Uncomment this to build with only essential functionality.
+ ## This leaves out the less used features and cut in half the tools.
+@@ -71,10 +69,10 @@
+ DYNAMIC_LINK= libiw.so
+ 
+ # Install directories
+-INSTALL_DIR= $(PREFIX)/sbin/
+-INSTALL_LIB= $(PREFIX)/lib/
+-INSTALL_INC= $(PREFIX)/include/
+-INSTALL_MAN= $(PREFIX)/man/
++INSTALL_DIR= $(DESTDIR)$(PREFIX)/sbin/
++INSTALL_LIB= $(DESTDIR)$(PREFIX)/lib/
++INSTALL_INC= $(DESTDIR)$(PREFIX)/include/
++INSTALL_MAN= $(DESTDIR)$(PREFIX)/man/
+ 
+ # Various commands
+ RM = rm -f

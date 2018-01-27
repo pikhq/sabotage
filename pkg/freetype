@@ -1,0 +1,30 @@
+[mirrors]
+http://download.savannah.gnu.org/releases/freetype/freetype-2.8.1.tar.bz2
+
+[vars]
+filesize=1886443
+sha512=ca59e47f0fceeeb9b8032be2671072604d0c79094675df24187829c05e99757d0a48a0f8062d4d688e056f783aa8f6090d732ad116562e94784fccf1339eb823
+pkgver=5
+
+[deps]
+zlib
+libpng
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+printf "#!/bin/sh\necho -lpng15 -I$butch_root_dir$butch_prefix/include/libpng15\n" > libpng-config
+chmod +x libpng-config
+cp libpng-config libpng15-config
+export PATH="$PWD:$PATH"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="-L/lib $optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --with-harfbuzz=no
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

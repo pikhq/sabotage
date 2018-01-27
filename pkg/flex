@@ -1,4 +1,15 @@
-tarxf http://downloads.sourceforge.net/sourceforge/flex/ flex-2.5.35 .tar.bz2
-./configure --prefix=/ --disable-nls --infodir=/share/info --mandir=/share/man
-make
-make DESTDIR=$R install
+[vars]
+filesize=1612101
+sha512=8b1b86b81e7d231c746887c0c24fd1004f3f7598af4e41408667f609918a9994721b61d666a1e184822409de329323b829193a4a8dcdf12ce9313d0fe37cbbc1
+
+[mirrors]
+http://downloads.sourceforge.net/sourceforge/flex/flex-2.5.39.tar.bz2
+
+[build]
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > tests/Makefile.in
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+LDFLAGS="$optldflags -static" CPPFLAGS="-D_GNU_SOURCE -DSTDC_HEADERS" CFLAGS="$optcflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls --infodir="$butch_prefix"/share/info --mandir="$butch_prefix"/share/man
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

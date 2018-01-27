@@ -1,0 +1,20 @@
+[mirrors]
+http://downloads.ghostscript.com/public/jbig2dec/jbig2dec-0.14.tar.gz
+
+[vars]
+filesize=463572
+sha512=066bd880ac0665fc1e42b0ae0e481008b125aab6e173b7f82d61a2a30e72c90085cbded9b2a68c6836f92dea3d8d8d5c2228dba76e0d99c79c922197d215705b
+pkgver=2
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

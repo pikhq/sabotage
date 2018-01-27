@@ -1,0 +1,392 @@
+#!/bin/sh
+BUTCH_VERSION=0.7.4
+test -n "$CONFIG" && . $CONFIG
+BINDIR=$(dirname $(readlink -f "$0"))
+hlppid=
+timestamp() {
+	date '+%Y-%m-%d %H:%M:%S'
+}
+info() {
+	printf "%s %s\n" "$(timestamp)" "$1"
+}
+end_proc() {
+	test -n "$hlppid" && {
+		echo "QUIT" >&4
+		wait $hlppid
+		trap - EXIT
+	}
+	exit $1
+}
+die() {
+	echo "$@" >&2
+	end_proc 1
+}
+usage() {
+cat << EOF
+butch-core v$BUTCH_VERSION
+syntax: $0 command options
+
+commands: install, rebuild, prefetch
+
+pass an arbitrary number of package names as options
+
+        install: installs one or more packages when they're not yet installed
+                (list of installed packages is kept in /var/lib/butch.db unless
+                 overridden via BUTCHDB env var.)
+        rebuild: installs one or more packages even when they're already
+                installed
+        prefetch: only download the given package and all of its dependencies,
+                unless they're not already in $C
+        update: rebuild packages that changed since last build
+                interactive mode, list can be edited before build start.
+	outdated: display packages that have changed since they were installed
+
+EOF
+exit 1
+}
+check_access() {
+	test -$2 $1 || die "permissions for $1 insufficient (want: $2)"
+}
+check_config() {
+[ -z "$BUTCH_DOWNLOAD_TEMPLATE" ] && die "BUTCH_DOWNLOAD_TEMPLATE not set"
+[ -z "$BUTCH_BUILD_TEMPLATE" ] && die "BUTCH_BUILD_TEMPLATE not set"
+[ -e "$BUTCH_DOWNLOAD_TEMPLATE" ] || die "$BUTCH_DOWNLOAD_TEMPLATE not found"
+[ -e "$BUTCH_BUILD_TEMPLATE" ] || die "$BUTCH_BUILD_TEMPLATE not found"
+[ -z "$A" ] && die "need to set A to your arch (ex. x86_64, i386, arm, mips...)"
+[ -z "$R" ] && R=/
+[ -z "$S" ] && S=$R/src
+[ -z "$B" ] && B=$S/build
+[ -z "$C" ] && C=$S/tarballs
+[ -z "$K" ] && K=$S/KEEP
+[ -z "$LOGPATH" ] && LOGPATH=$S/logs
+[ -z "$BUTCHDB" ] && BUTCHDB=$R/var/lib/butch.db
+[ -z "$BUTCH_DL_THREADS" ] && BUTCH_DL_THREADS=16
+check_access $S r
+check_access $K r
+export A B C K R S BUTCHDB LOGPATH BUTCH_BUILD_TEMPLATE \
+BUTCH_DOWNLOAD_TEMPLATE DEPS BUTCH_SKIPLIST BUTCH_DL_THREADS
+}
+check_write_access() {
+check_access $LOGPATH w
+check_access $R w
+check_access $C w
+if ! test -w $B ; then
+	mkdir -p $B
+	check_access $B w
+fi
+local dbd=$(dirname $BUTCHDB)
+mkdir -p $dbd
+check_access $dbd w
+}
+has_section() {
+	grep -x '\['"$2"'\]' $S/pkg/$1 >/dev/null 2>&1
+}
+has_mirrors() {
+	has_section "$1" mirrors
+}
+is_installed() {
+	echo "installed $1" >&4
+	read res_ <&3
+	test $res_ = 0 && return 1
+	return 0
+}
+dont_unlink() {
+	$AWKPROG -f $BINDIR/butch-printsec "$1" vars | grep -x 'no_unlink=1' >/dev/null 2>&1
+}
+get_pkgver() {
+	ver=$($AWKPROG -f $BINDIR/butch-printsec "$1" vars | grep '^pkgver=')
+	if [ -n "$ver" ] ; then
+		printf "%s\n" "$ver" | cut -b 8-
+	else
+		echo 1
+	fi
+}
+get_pkgver_installed() {
+	echo "pkgver $1" >&4
+	read res_ <&3
+	printf "%s\n" "$res_"
+	test $res_ = 0 && return 1
+	return 0
+}
+is_tarball_pkg() {
+	has_mirrors "$1" && ! has_section "$1" build
+}
+update_butchdb() {
+	cmd=INSTALLED
+	test "$2" = installed || cmd=REMOVED
+	echo "$cmd $1" >&4
+	test "$2" = installed && is_tarball_pkg "$1" && return 0
+	test "$2" != installed && dont_unlink "$1" && return 0
+	rm -f $BUTCHDB.tmp
+	[ -e "$BUTCHDB" ] && while read pkg_ hash_ ; do
+	test "$pkg_" = "$1" || printf "%s %s\n" "$pkg_" "$hash_" >> $BUTCHDB.tmp
+	done < $BUTCHDB
+	test "$2" = installed && printf "%s %s\n" "$1" "$(get_pkgver $1)" >> $BUTCHDB.tmp
+	mv $BUTCHDB.tmp $BUTCHDB
+}
+has_all_deps() {
+	echo "hasdeps $1" >&4
+	read resp_ <&3
+	test $resp_ = 1 && return 0 || return 1
+}
+dl_one() {
+	scrname=$B/dl_$1.sh
+	logname=$LOGPATH/dl_$1.log
+	info "downloading $1 ($scrname) -> $logname"
+	$BINDIR/butch-merge $1 $BUTCH_DOWNLOAD_TEMPLATE > $scrname
+	test $? = 0 || {
+		echo "FAIL $1"
+		return 1
+	}
+	chmod +x $scrname
+	$scrname > $logname 2>&1 && echo "OK $1" || echo "FAIL $1"
+}
+
+start_dl() {
+[ -z "$@" ] && echo "DONE DONE" && return 0
+[ -z "$JOBFLOW" ] && type jobflow >/dev/null 2>&1 && JOBFLOW=jobflow
+if [ -n "$JOBFLOW" ] && [ -x "$JOBFLOW" ] ; then
+cat << EOF | sed 's/ /\n/g' | "$JOBFLOW" -threads=$BUTCH_DL_THREADS \
+  -delayedspinup=$(($BUTCH_DL_THREADS * 2)) -exec $0 dl_one {}
+$@
+EOF
+else
+	for p in $@ ; do
+		$0 dl_one "$p"
+	done
+fi
+echo DONE DONE
+}
+setup_pipe() {
+	fd=$1
+	node="$(mktemp -u)" || exit 1
+	mkfifo -m0600 "$node" || exit 1
+	eval "exec $fd<> $node"
+	rm "$node"
+}
+add_list() {
+	local mylist
+	eval mylist='$'"$1"
+	test -z "$mylist" && mylist="$2" || mylist="$mylist $2"
+	eval "$1"=\""$mylist"\"
+}
+
+buildlist=
+dllist=
+dlerr=
+builderr=
+mode=
+force=false
+case $1 in
+	install) mode=build;;
+	build) mode=build;;
+	rebuild) mode=build; force=true;;
+	download) mode=download; force=true;;
+	prefetch) mode=download; force=true;;
+	dl_one) mode=download_one;;
+	outdated) mode=outdated;;
+	update) mode=update;;
+	*) usage ;;
+esac
+shift
+test $mode = download_one && { dl_one "$1" ; exit $? ; }
+check_config
+args=
+for x_ in "$@" ; do add_list args $(basename "$x_") ; done
+
+in_args() {
+	for x_ in $args ; do
+		test "$x_" = "$1" && return 0
+	done
+	return 1
+}
+add_downloaded() {
+	echo "DOWNLOADED $1" >&4
+}
+rem_buildlist() {
+	bl_old="$buildlist"
+	buildlist=
+	for h_ in $bl_old ; do
+		test "$h_" = "$1" || add_list buildlist "$h_"
+	done
+}
+is_downloaded() {
+	echo "downloaded $1" >&4
+	read resss_ <&3
+	test $resss_ = 1 && return 0 || return 1
+}
+start_build() {
+	scrname=$B/build_$1.sh
+	logname=$LOGPATH/build_$1.log
+	info "building $1 ($scrname) -> $logname"
+	$BINDIR/butch-merge $1 $BUTCH_BUILD_TEMPLATE > $scrname
+	test $? = 0 || {
+		echo "error: butch-merge failed"
+		exit 1
+	}
+        chmod +x $scrname
+	success=false
+        $scrname </dev/null > $logname 2>&1 && success=true
+	if $success ; then
+		update_butchdb "$1" installed
+	else
+		info "WARNING: $1 failed to build! wait for other jobs to finish."
+		$force && update_butchdb "$1" removed
+	fi
+	$success
+}
+launch_build() {
+	for j_ in $buildlist ; do
+		if has_all_deps "$j_" && is_downloaded "$j_" ; then
+			start_build "$j_" || add_list builderr "$j_"
+			rem_buildlist "$j_"
+			return 0
+		fi
+	done
+	return 1
+}
+
+[ -z "$AWKPROG" ] && AWKPROG=awk
+if [ "$STAGE" = 0 ] ; then
+	$AWKPROG -W version 2>/dev/null | grep "mawk" > /dev/null && \
+	AWKPROG="$AWKPROG -W interactive" #work around mawk bug...
+fi
+setup_pipe "3"
+setup_pipe "4"
+(BUTCHBINDIR=$BINDIR $AWKPROG -f $BINDIR/butch-core-helper <&4 >&3) &
+hlppid=$!
+
+trap "exit" INT TERM
+trap "kill 0" EXIT
+
+if test $mode = outdated || test $mode = update ; then
+	args=
+	for i in $($BINDIR/butch-list) ; do
+		test ! -e "$S"/pkg/"$i" && continue
+		if test $(get_pkgver "$i") != $(get_pkgver_installed "$i")
+		then
+			add_list args "$i"
+		fi
+	done
+	if test $mode = outdated ; then
+		[ -z "$args" ] && end_proc 0
+		for i in $args ; do printf "%s\n" "$i" ; done
+		end_proc 0
+	fi
+	# update mode
+	tmp=$(mktemp -u)
+	cat <<- EOF | sed 's/ /\n/g' > $tmp
+	$args
+	EOF
+	cat <<- EOF >> $tmp
+	#
+	# welcome to butch's interactive update mode.
+	#
+	# all lines represent a package to be rebuilt, in the order of this file
+	# you may want to delete all lines with unlinked packages, or packages
+	# you do not want to rebuild for other reasons.
+	#
+	# it's also advised to reorder packages that overwrite links of others.
+	# for example, you will want to rebuild wget before busybox, so
+	# your symlinks still point to the more complete gnu wget afterwards.
+	# save this file and exit the editor when you're done.
+	#
+	# in case you don't want to change/rebuild anything, just delete all
+	# lines before saving.
+	EOF
+	[ -z "$EDITOR" ] && EDITOR=vi
+	$EDITOR $tmp
+	args=
+	while read i ; do
+		printf "%s\n" "$i" | grep -v '^#' >/dev/null 2>&1 && \
+		add_list args "$i"
+	done < $tmp
+	rm -f $tmp
+	[ -z "$args" ] && end_proc 0
+	mode=build
+	force=true
+fi
+
+[ -z "$DEPS" ] && DEPS=build:host:run
+
+for x_ in $args ; do
+	test -r "$S"/pkg/"$x_" || die "$S/pkg/$x_ does not exist or no read permission!"
+	case "$x_" in stage[0-9]) DEPS="$DEPS":"$x_" ;; esac
+done
+
+deps=$($AWKPROG -f $BINDIR/butch-deps $args)
+test $? = 0 || die "butch deps failed"
+
+for p in $deps ; do
+	if is_installed "$p" ; then
+		if $force && in_args "$p" ; then
+			test $mode != download && add_list buildlist "$p"
+			has_mirrors "$p" && add_list dllist "$p" || add_downloaded "$p"
+		else
+			echo "package $p is already installed, skipping"
+		fi
+	else
+		test $mode != download && add_list buildlist "$p"
+		has_mirrors "$p" && add_list dllist "$p" || add_downloaded "$p"
+	fi
+done
+
+check_write_access
+
+echo "*** downloadqueue ***"
+for p in $dllist ; do printf "%s\n" "$p" ; done
+
+setup_pipe "5"
+start_dl "$dllist" >&5 &
+dlpid=$!
+
+dlfails=0
+
+echo "*** buildqueue ***"
+for p in $buildlist ; do printf "%s\n" "$p" ; done
+
+starttime=$(date +%s)
+
+while read line <&5 ; do
+	cnt=0
+	for foo in $line ; do
+		test $cnt = 0 && status="$foo"
+		test $cnt = 1 && pkg="$foo" && break
+		cnt=1
+	done
+	if [ "$status" != OK ] && [ "$status" != FAIL ] && [ "$status" != DONE ] ; then
+		printf "%s\n" "$line"
+		continue
+	fi
+	test "$status" = OK && add_downloaded "$pkg"
+	test "$status" = "FAIL" && add_list dlerr "$pkg" && dlfails=$(($dlfails + 1)) && \
+	info "WARNING: package $pkg failed to download!"
+	while launch_build ; do
+		:
+	done
+	test "$status" = DONE && {
+		wait $dlpid
+		break
+	}
+done
+echo "QUIT" >&4
+wait $hlppid
+# at this point the child processes are reaped, undo EXIT trap
+trap - EXIT
+bfails=0
+afails=0
+test $mode = download || {
+  for p in $builderr ; do bfails=$(($bfails + 1)) ; done
+  for p in $buildlist ; do afails=$(($afails + 1)) ; done
+}
+info "done."
+echo "got $dlfails download errors and $bfails build errors."
+test $dlfails -gt 0 && echo "failed to download: $dlerr"
+test $bfails -gt 0 && echo "failed to build: $builderr"
+test $afails -gt 0 && echo "not built due to missing deps: $buildlist"
+totaltime=$(($(date +%s) - $starttime))
+hrs=$(($totaltime / 3600))
+mins=$((($totaltime % 3600) / 60))
+secs=$(($totaltime % 60))
+printf "time spent: %02d:%02d:%02d\n" $hrs $mins $secs
+exit $(($dlfails + $bfails))

@@ -1,0 +1,11 @@
+--- lsof_4.87_src.org/dialects/linux/Makefile
++++ lsof_4.87_src/dialects/linux/Makefile
+@@ -43,7 +43,7 @@
+ all: ${PROG}
+ 
+ ${PROG}: ${P} ${LIB} ${OBJ}
+-	${CC} -o $@ ${OBJ} ${CFGL}
++	${CC} -o $@ ${OBJ} ${CFLAGS} ${CFGL} ${LDFLAGS}
+ 
+ clean: FRC
+ 	rm -f Makefile.bak ${PROG} a.out core errs lint.out tags *.o version.h ${CFGDN}

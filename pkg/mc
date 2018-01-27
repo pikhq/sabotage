@@ -1,0 +1,28 @@
+[mirrors]
+http://www.midnight-commander.org/downloads/mc-4.8.20.tar.xz
+
+[vars]
+filesize=2529580
+sha512=c2460561ae94bed75b1ed12f5c8039c9f8ace4c06987c57d07b8399c4e01c5a6c57851fddb3e918a4541ade089c89e8526078572a09580ccd0ae95344e3c1138
+pkgver=4
+desc='midnight commander - terminal file manager (norton commander clone)'
+
+[deps]
+curses
+glib
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" \
+CFLAGS="$optcflags" LDFLAGS="$optldflags -lterminfo" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls \
+  --disable-silent-rules \
+  --without-x \
+  --without-gpm-mouse \
+  --with-screen=ncurses
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

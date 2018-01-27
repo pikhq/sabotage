@@ -1,0 +1,14 @@
+--- lsof_4.87_src.org/dialects/linux/dsock.c
++++ lsof_4.87_src/dialects/linux/dsock.c
+@@ -35,10 +35,9 @@
+ static char *rcsid = "$Id: dsock.c,v 1.39 2013/01/02 17:02:36 abe Exp $";
+ #endif
+ 
+-
++#include <netinet/tcp.h>
+ #include "lsof.h"
+ #include <sys/xattr.h>
+-
+ 
+ /*
+  * Local definitions

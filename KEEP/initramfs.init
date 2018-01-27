@@ -1,0 +1,145 @@
+#!/bin/sh
+/bin/busybox --install -s
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mdev -s
+
+fail_shell() {
+  echo "$@"
+  exec sh
+}
+
+waitdev() {
+  local dev=$1
+  for i in $(seq 20); do
+    if echo "$dev" |grep -E -q '(UUID=|LABEL=)'; then
+      tdev="$(findfs $dev)"
+    fi
+    if [ -b "$tdev" ]; then
+      break
+    fi
+    if [ -b "$dev" ]; then
+      break
+    fi
+    sleep 1
+    mdev -s
+  done
+}
+
+wait_btrfs() {
+  [ -x /bin/btrfs ] || return 0
+  local btrfs="$1"
+  btrfs device scan
+  if [ ! -z "$btrfs" ]; then
+    waitdev $btrfs
+    for i in $(seq 20); do
+      if [ -b "$btrfs" ]; then
+        break
+      fi
+      fs="$(findfs $btrfs)"
+      if [ ! -z "$fs" ]; then
+        btrfs="$fs"
+      fi
+      sleep 1
+    done
+    for i in $(seq 20); do
+      if btrfs device ready $btrfs; then
+        break
+      fi
+      sleep 1
+    done
+  fi
+}
+
+get_opt() {
+  echo "$@" | sed -r 's,(^| )[^=]+=([^ ]+)( |$),\2,g'
+}
+
+init="/bin/init"
+boot="/dev/sda1"
+sqsh_root="/root.sqsh.img"
+rw=""
+keysdev=""
+for i in $(cat /proc/cmdline); do
+  case $i in
+    boot\=*)
+      boot=$(get_opt $i)
+      ;;
+    init\=*)
+      init=$(get_opt $i)
+      ;;
+    sqsh_root\=*)
+      sqsh_root=$(get_opt $i)
+      ;;
+    rw\=*)
+      rw=$(get_opt $i)
+      ;;
+    keysdev\=*)
+      keysdev=$(get_opt $i)
+      ;;
+    rescue)
+      fail_shell
+      ;;
+  esac
+done
+waitdev $boot
+fsck.fat -a -r "${boot}"
+mount -o ro,umask=077 "${boot}" /boot
+
+if [ -n "$keysdev" ]; then
+  waitdev "UUID=$keysdev"
+  mkdir -p /tmp/keys
+  mount $(findfs UUID=$keysdev) /tmp/keys
+  cd /tmp/keys/
+  for i in *_LuksKey0; do
+    local cruuid="$(echo $i |sed -r 's,_.+$,,g')"
+    local crdev="$(findfs UUID=$cruuid)"
+    if [ -n "$crdev" ]; then
+      if ! cryptsetup luksOpen -q --key-file="${cruuid}_LuksKey0" -S 0 $crdev $cruuid; then
+        for s in $(seq 1 7); do
+          if cryptsetup luksOpen -q --key-file="${cruuid}_LuksKey$s" -S $s $crdev $cruuid; then
+            break
+          fi
+        done
+      fi
+    fi
+  done
+  cd /
+  umount /tmp/keys
+fi
+
+if [ -z "$rw" ]; then
+  rw="LABEL=$(blkid $(findfs ${boot}) |sed -r 's,.*UUID="([^"]+)".*,\1,g')-rw"
+fi
+
+if [ ! -z "$(findfs $rw)" ]; then
+  wait_btrfs "$rw"
+  mount -o remount,rw /boot
+  mkdir -p /bootstore /boot/store
+  mount -o remount,ro /boot
+  if ! mount -o subvol=sabotage/bootstore,autodefrag "$rw" /bootstore; then
+    fail_shell "couldn't mount $rw to /bootstore"
+  fi
+  if ! mount -o loop -t squashfs "/bootstore/${sqsh_root}" /newroot; then
+    fail_shell "couldn't mount /bootstore/${sqsh_root} to /newroot"
+  fi
+else
+  if ! mount -o loop -t squashfs "/boot/${sqsh_root}" /newroot; then
+    fail_shell "couldn't mount /boot/${sqsh_root} to /newroot"
+  fi
+fi
+if ! fsck -A -T -C -p; then
+  fail_shell "Fsck failed, fix the problem"
+fi
+if [ ! -z "$(findfs $rw)" ]; then
+  mount -o subvol=sabotage/rw-overlay,autodefrag "$rw" /newroot/rw
+fi
+if [ -x "/newroot/${init}" ] ; then
+  mount --move /boot /newroot/boot
+  mount --move /bootstore /newroot/boot/store
+  mount --move /dev /newroot/dev
+  umount -f /sys /proc
+  exec switch_root /newroot "${init}"
+fi
+fail_shell "Failed to switch_root, dropping to a shell"

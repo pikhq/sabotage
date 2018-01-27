@@ -1,0 +1,23 @@
+[mirrors]
+http://downloads.sourceforge.net/project/xclip/xclip/0.12/xclip-0.12.tar.gz
+
+[vars]
+filesize=63420
+sha512=6c769878004c02d87b9eca2b33dc34edb40acc59be767a6481f207a74d52fca3725a040b0c8deffa1419b687bd73cf3124a090413c06787c0dd137b0ede795e0
+
+[deps]
+
+[build]
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

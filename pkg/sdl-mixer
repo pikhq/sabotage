@@ -1,0 +1,44 @@
+[mirrors]
+http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12.tar.gz
+[vars]
+filesize=3707781
+sha512=230f6c5a73f4bea364f8aa3d75f76694305571dea45f357def742b2b50849b2d896af71e08689981207edc99a9836088bee2d0bd98d92c7f4ca52b12b3d8cf96
+
+[deps]
+sdl
+alsa-lib
+libvorbis
+libmikmod
+libflac
+fluidsynth
+
+[build]
+# you may want to remove fluidsynth from the deps list, this will lead to a lack of midi
+# but save from glib dependency hell.
+cp -f "$K"/config.sub build-scripts/
+
+printf "%s\n%s\n" 'extern void Mix_QuitFluidSynth();' 'extern int Mix_InitFluidSynth();' > patch.h
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+cat << EOF > libmikmod-config
+#!/bin/sh
+echo -lmikmod
+EOF
+chmod +x libmikmod-config
+export PATH="$PWD:$PATH"
+CFLAGS="$optcflags " \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+CPPFLAGS="-D_GNU_SOURCE -include patch.h" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-music-mp3 \
+  --disable-smpegtest
+# smpeg is unmaintained and beyond broken, so we disable it with
+# --disable-music-mp3, otherwise it would get pulled in if the host has it
+# installed (detected via smpeg-config binary). we would need to create
+# a dummy config program just like for libmikmod-config to avoid pulling in
+# references to host include and lib dirs.
+# if you want mp3 support, it is advised not to use smpeg but install libmad
+# and add --enable-music-mp3-mad-gpl if it's not being picked up automatically.
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

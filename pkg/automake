@@ -1,4 +1,22 @@
-tarxf ftp://ftp.gnu.org/pub/gnu/automake/ automake-1.11 .tar.bz2
-./configure --prefix=/
-make
-make DESTDIR=$R install
+[mirrors]
+http://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz
+
+[vars]
+filesize=1509496
+sha512=02f661b2676f1d44334ce1c7188f9913a6874bf46ba487708ad8090ad57905f14aead80fefed815e21effacfbb925e23b944ea7dd32563dca39c1a4174eda688
+pkgver=3
+desc="automated makefile generator"
+
+[deps]
+autoconf
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

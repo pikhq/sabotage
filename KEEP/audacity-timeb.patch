@@ -1,0 +1,30 @@
+--- audacity-src-2.0.2.org/lib-src/libnyquist/nyquist/cmt/midifns.c	2013-01-02 20:38:15.181000003 +0000
++++ audacity-src-2.0.2/lib-src/libnyquist/nyquist/cmt/midifns.c	2013-01-02 20:40:16.772000003 +0000
+@@ -110,17 +110,6 @@
+ #define BREAKTEST
+ #endif
+ 
+-#ifdef __APPLE__
+-#include <sys/types.h>
+-#include <sys/time.h>
+-#include <errno.h>
+-#else
+-#ifdef UNIX
+-#ifndef UNIX_IRIX
+-#include "sys/time.h"
+-#include "sys/timeb.h"
+-#include "cmtio.h"
+-#else
+ #include <sys/types.h>
+ #include <sys/time.h>
+ #include <errno.h>
+@@ -129,9 +118,6 @@
+ #include <midi.h>
+ #include <midiio.h>
+ #endif /* UNIX_IRIX_MIDIFNS */
+-#endif  /* UNIX_IRIX */
+-#endif /* UNIX */
+-#endif /* __APPLE__ */
+ 
+ #ifdef ITC
+ static int ignore_realtime = 0;

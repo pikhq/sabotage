@@ -1,0 +1,26 @@
+[deps.host]
+bison
+
+[deps]
+libx11
+libxmu
+libxext
+libice
+libsm
+libxt
+
+[vars]
+filesize=266272
+sha512=9326ab5687734e09cf36f1993d085fb72ed24efefaa9e426f8adc10ae4bdbccc7bff741622beac7284c2b8c0b56b79e9b0172d4f149f660d5524c05104eb670a
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/app/twm-1.0.6.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make LIBS="-lX11 -lxcb -lXau -lXdmcp" -j$MAKE_THREADS
+mkdir -p ${butch_install_dir}${butch_prefix}/bin/
+cp src/twm ${butch_install_dir}${butch_prefix}/bin/

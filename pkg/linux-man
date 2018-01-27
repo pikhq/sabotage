@@ -1,0 +1,11 @@
+[mirrors]
+https://www.kernel.org/pub/linux/docs/man-pages/man-pages-4.11.tar.xz
+
+[vars]
+filesize=1574380
+sha512=cc1282467255d5c078b099ab6dbc407c5f56fa66fb3f5789286bc66c98b229cae88bf8afdafa7c9609a37c87cdb1401bb381cec25c64690ab69faf4d00787187
+pkgver=4
+
+[build]
+rm -rf man1 man2 man3
+make prefix="$butch_prefix" DESTDIR="$butch_install_dir" install

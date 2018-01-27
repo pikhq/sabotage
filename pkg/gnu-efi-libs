@@ -1,0 +1,20 @@
+[mirrors]
+http://download.sourceforge.net/gnu-efi/gnu-efi_3.0u.orig.tar.gz
+
+[vars]
+filesize=159662
+sha512=77224d555befb96b14c20a3a39aacb50ed2db9dfff0c112113c3fb211152106f76cf278b4d37b4251e9f83327c7fd59319e6dee802c97d3bfa7308f7c43b34e3
+tardir=gnu-efi-3.0
+
+[deps]
+pciutils
+libelf
+
+[build]
+case "$A" in
+  i[3-6]86) sed -ri 's, --no-undefined,,g' Make.defaults ;;
+  x86_64) ;;
+  *) echo "ERROR: gnu-efi-libs only supports the intel architecture" ; exit 0 ;;
+esac
+make CC="$CC" PREFIX="$butch_prefix" INSTALLROOT="$butch_install_dir" \
+  -j1 all install

@@ -1,0 +1,38 @@
+[mirrors]
+http://ftp.acc.umu.se/pub/GNOME/sources/librsvg/2.40/librsvg-2.40.19.tar.xz
+
+[vars]
+filesize=1792716
+sha512=ee3921d0344f9c8503a77086e3d0411a5a638beeeefb959529fd07819e21f82504dcd3004faa93c65d77da30d0db055b7cb56ec8517c1bfae3c1ae23582dbce3
+pkgver=4
+desc='library to render and convert SVG files'
+
+[deps]
+gdk-pixbuf
+libxml2
+pango
+cairo
+fontconfig
+freetype
+gtk+2
+libcroco
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-silent-rules \
+  --disable-introspection \
+  --disable-tools \
+  --disable-gtk-doc-html
+
+touch s-enum-types-h
+touch s-enum-types-c
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make -j$MAKE_THREADS
+make V=1 DESTDIR="$butch_install_dir" install

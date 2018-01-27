@@ -1,0 +1,15 @@
+--- libnids-1.24.org/configure	2014-08-12 22:24:04.065280392 +0200
++++ libnids-1.24/configure	2014-08-12 22:25:10.544280497 +0200
+@@ -3932,11 +3932,7 @@
+      ;;
+   esac
+ else
+-   if test -f ${prefix}/include/pcap.h; then
+-     PCAP_CFLAGS="-I${prefix}/include"
+-     PCAPLIB="-L${exec_prefix}/lib -lpcap"
+-  elif test -f /usr/include/pcap/pcap.h; then
+-     PCAP_CFLAGS="-I/usr/include/pcap"
++  if true ; then
+      PCAPLIB="-lpcap"
+   else
+ 	TMP=$LIBS

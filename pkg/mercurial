@@ -1,0 +1,19 @@
+[mirrors]
+https://www.mercurial-scm.org/release/mercurial-4.1.1.tar.gz
+
+[vars]
+filesize=5132169
+sha512=b076336a10d524e85a7eb46e0da7b1b5adb34ca377ec162ebf0b3fc1f3749db10bd9144ce046dda63aa0e6ad65d10e288919d65a88d5a9346b26a47d4b21bd49
+pkgver=6
+desc='distributed version control system written in python'
+
+[deps.run]
+python
+
+[deps.host]
+python
+
+[build]
+python setup.py build
+python setup.py install --prefix="$butch_prefix" \
+       --root="$butch_install_dir"

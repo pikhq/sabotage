@@ -1,0 +1,32 @@
+[mirrors]
+https://linuxcontainers.org/downloads/lxc-2.0.7.tar.gz
+
+[vars]
+filesize=1307351
+sha512=51aedd32ae108f31dac5e8e1e71c93fa5da7813a3569f4aeee79dc254fe4a8c27221de83f645e6b334048c44953a7a7dbcde64439b9161d0cb55d8207944bb7b
+pkgver=4
+desc='linux containers for running isolated virtualized environments'
+
+[deps]
+libcap2
+seccomp
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+sed -i 's@-Werror@-Wall@g' configure
+CFLAGS="$optcflags" LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+   ./configure -C --prefix="$butch_prefix" \
+            --bindir="$butch_prefix"/bin \
+            --sbindir="$butch_prefix"/bin \
+            --with-usernic-db=/var/run/lxc/nics \
+            --with-runtime-path=/var/run \
+            --with-distro=unknown \
+            $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+install -D -m 660 "$K"/lxc-debian.X.common.conf $butch_install_dir/share/lxc/config/debian.X.common.conf
+install -D -m 750 "$K"/lxc-autodev-X $butch_install_dir/share/lxc/hooks/autodev-debian.X

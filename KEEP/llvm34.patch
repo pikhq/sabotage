@@ -1,0 +1,234 @@
+diff -ru a//include/llvm/Target/TargetLibraryInfo.h b//include/llvm/Target/TargetLibraryInfo.h
+--- a//include/llvm/Target/TargetLibraryInfo.h	2013-11-03 06:48:38.000000000 +0000
++++ b//include/llvm/Target/TargetLibraryInfo.h	2014-01-13 05:10:56.127944508 +0000
+@@ -259,8 +259,6 @@
+       fmodl,
+       /// FILE *fopen(const char *filename, const char *mode);
+       fopen,
+-      /// FILE *fopen64(const char *filename, const char *opentype)
+-      fopen64,
+       /// int fprintf(FILE *stream, const char *format, ...);
+       fprintf,
+       /// int fputc(int c, FILE *stream);
+@@ -283,8 +281,6 @@
+       fseek,
+       /// int fseeko(FILE *stream, off_t offset, int whence);
+       fseeko,
+-      /// int fseeko64(FILE *stream, off64_t offset, int whence)
+-      fseeko64,
+       /// int fsetpos(FILE *stream, const fpos_t *pos);
+       fsetpos,
+       /// int fstat(int fildes, struct stat *buf);
+@@ -299,8 +295,6 @@
+       ftell,
+       /// off_t ftello(FILE *stream);
+       ftello,
+-      /// off64_t ftello64(FILE *stream)
+-      ftello64,
+       /// int ftrylockfile(FILE *file);
+       ftrylockfile,
+       /// void funlockfile(FILE *file);
+@@ -606,8 +600,6 @@
+       times,
+       /// FILE *tmpfile(void);
+       tmpfile,
+-      /// FILE *tmpfile64(void)
+-      tmpfile64,
+       /// int toascii(int c);
+       toascii,
+       /// double trunc(double x);
+diff -ru a//lib/ExecutionEngine/RTDyldMemoryManager.cpp b//lib/ExecutionEngine/RTDyldMemoryManager.cpp
+--- a//lib/ExecutionEngine/RTDyldMemoryManager.cpp	2013-12-24 06:50:45.000000000 +0000
++++ b//lib/ExecutionEngine/RTDyldMemoryManager.cpp	2014-01-13 05:13:00.116944627 +0000
+@@ -33,7 +33,7 @@
+ RTDyldMemoryManager::~RTDyldMemoryManager() {}
+ 
+ // Determine whether we can register EH tables.
+-#if (defined(__GNUC__) && !defined(__ARM_EABI__) && !defined(__ia64__) && \
++#if (defined(__GLIBC__) && !defined(__ARM_EABI__) && !defined(__ia64__) && \
+      !defined(__SEH__) && !defined(__USING_SJLJ_EXCEPTIONS__))
+ #define HAVE_EHTABLE_SUPPORT 1
+ #else
+diff -ru a//lib/Support/DynamicLibrary.cpp b//lib/Support/DynamicLibrary.cpp
+--- a//lib/Support/DynamicLibrary.cpp	2013-11-13 15:35:13.000000000 +0000
++++ b//lib/Support/DynamicLibrary.cpp	2014-01-13 05:13:52.530944677 +0000
+@@ -143,7 +143,7 @@
+ // On linux we have a weird situation. The stderr/out/in symbols are both
+ // macros and global variables because of standards requirements. So, we
+ // boldly use the EXPLICIT_SYMBOL macro without checking for a #define first.
+-#if defined(__linux__) and !defined(__ANDROID__)
++#if defined(__GLIBC__)
+   {
+     EXPLICIT_SYMBOL(stderr);
+     EXPLICIT_SYMBOL(stdout);
+diff -ru a//lib/Support/Unix/Signals.inc b//lib/Support/Unix/Signals.inc
+--- a//lib/Support/Unix/Signals.inc	2013-08-30 20:39:21.000000000 +0000
++++ b//lib/Support/Unix/Signals.inc	2014-01-13 05:14:59.285944741 +0000
+@@ -266,7 +266,7 @@
+ // On glibc systems we have the 'backtrace' function, which works nicely, but
+ // doesn't demangle symbols.
+ void llvm::sys::PrintStackTrace(FILE *FD) {
+-#if defined(HAVE_BACKTRACE) && defined(ENABLE_BACKTRACES)
++#if defined(__GLIBC__) && defined(HAVE_BACKTRACE) && defined(ENABLE_BACKTRACES)
+   static void* StackTrace[256];
+   // Use backtrace() to output a backtrace on Linux systems with glibc.
+   int depth = backtrace(StackTrace,
+diff -ru a//lib/Target/TargetLibraryInfo.cpp b//lib/Target/TargetLibraryInfo.cpp
+--- a//lib/Target/TargetLibraryInfo.cpp	2013-11-03 06:48:38.000000000 +0000
++++ b//lib/Target/TargetLibraryInfo.cpp	2014-01-13 05:16:07.928944807 +0000
+@@ -144,7 +144,6 @@
+     "fmodf",
+     "fmodl",
+     "fopen",
+-    "fopen64",
+     "fprintf",
+     "fputc",
+     "fputs",
+@@ -156,7 +155,6 @@
+     "fscanf",
+     "fseek",
+     "fseeko",
+-    "fseeko64",
+     "fsetpos",
+     "fstat",
+     "fstat64",
+@@ -164,7 +162,6 @@
+     "fstatvfs64",
+     "ftell",
+     "ftello",
+-    "ftello64",
+     "ftrylockfile",
+     "funlockfile",
+     "fwrite",
+@@ -315,7 +312,6 @@
+     "tanl",
+     "times",
+     "tmpfile",
+-    "tmpfile64",
+     "toascii",
+     "trunc",
+     "truncf",
+@@ -603,16 +599,12 @@
+     TLI.setUnavailable(LibFunc::under_IO_getc);
+     TLI.setUnavailable(LibFunc::under_IO_putc);
+     TLI.setUnavailable(LibFunc::memalign);
+-    TLI.setUnavailable(LibFunc::fopen64);
+-    TLI.setUnavailable(LibFunc::fseeko64);
+     TLI.setUnavailable(LibFunc::fstat64);
+     TLI.setUnavailable(LibFunc::fstatvfs64);
+-    TLI.setUnavailable(LibFunc::ftello64);
+     TLI.setUnavailable(LibFunc::lstat64);
+     TLI.setUnavailable(LibFunc::open64);
+     TLI.setUnavailable(LibFunc::stat64);
+     TLI.setUnavailable(LibFunc::statvfs64);
+-    TLI.setUnavailable(LibFunc::tmpfile64);
+   }
+ }
+ 
+diff -ru a//lib/Transforms/IPO/FunctionAttrs.cpp b//lib/Transforms/IPO/FunctionAttrs.cpp
+--- a//lib/Transforms/IPO/FunctionAttrs.cpp	2013-10-31 03:03:55.000000000 +0000
++++ b//lib/Transforms/IPO/FunctionAttrs.cpp	2014-01-13 05:16:39.776944837 +0000
+@@ -1599,32 +1599,6 @@
+     setOnlyReadsMemory(F, 1);
+     setOnlyReadsMemory(F, 2);
+     break;
+-  case LibFunc::fopen64:
+-    if (FTy->getNumParams() != 2 ||
+-        !FTy->getReturnType()->isPointerTy() ||
+-        !FTy->getParamType(0)->isPointerTy() ||
+-        !FTy->getParamType(1)->isPointerTy())
+-      return false;
+-    setDoesNotThrow(F);
+-    setDoesNotAlias(F, 0);
+-    setDoesNotCapture(F, 1);
+-    setDoesNotCapture(F, 2);
+-    setOnlyReadsMemory(F, 1);
+-    setOnlyReadsMemory(F, 2);
+-    break;
+-  case LibFunc::fseeko64:
+-  case LibFunc::ftello64:
+-    if (FTy->getNumParams() == 0 || !FTy->getParamType(0)->isPointerTy())
+-      return false;
+-    setDoesNotThrow(F);
+-    setDoesNotCapture(F, 1);
+-    break;
+-  case LibFunc::tmpfile64:
+-    if (!FTy->getReturnType()->isPointerTy())
+-      return false;
+-    setDoesNotThrow(F);
+-    setDoesNotAlias(F, 0);
+-    break;
+   case LibFunc::fstat64:
+   case LibFunc::fstatvfs64:
+     if (FTy->getNumParams() != 2 || !FTy->getParamType(1)->isPointerTy())
+diff -ru a//projects/compiler-rt/lib/Makefile.mk b//projects/compiler-rt/lib/Makefile.mk
+--- a//projects/compiler-rt/lib/Makefile.mk	2013-08-07 22:47:26.000000000 +0000
++++ b//projects/compiler-rt/lib/Makefile.mk	2014-01-13 05:19:22.742944993 +0000
+@@ -14,15 +14,15 @@
+ SubDirs += i386 ppc x86_64 arm
+ 
+ # Add other submodules.
+-SubDirs += asan
++#SubDirs += asan
+ SubDirs += interception
+ SubDirs += profile
+-SubDirs += sanitizer_common
+-SubDirs += tsan
+-SubDirs += msan
+-SubDirs += ubsan
+-SubDirs += lsan
+-SubDirs += dfsan
++#SubDirs += sanitizer_common
++#SubDirs += tsan
++#SubDirs += msan
++#SubDirs += ubsan
++#SubDirs += lsan
++#SubDirs += dfsan
+ 
+ # Define the variables for this specific directory.
+ Sources := $(foreach file,$(wildcard $(Dir)/*.c),$(notdir $(file)))
+diff -ru a//projects/compiler-rt/lib/interception/interception_linux.cc b//projects/compiler-rt/lib/interception/interception_linux.cc
+--- a//projects/compiler-rt/lib/interception/interception_linux.cc	2013-09-03 07:53:49.000000000 +0000
++++ b//projects/compiler-rt/lib/interception/interception_linux.cc	2014-01-13 05:20:27.936945056 +0000
+@@ -24,12 +24,6 @@
+   return real == wrapper;
+ }
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
+-void *GetFuncAddrVer(const char *func_name, const char *ver) {
+-  return dlvsym(RTLD_NEXT, func_name, ver);
+-}
+-#endif  // !defined(__ANDROID__)
+-
+ }  // namespace __interception
+ 
+ 
+diff -ru a//projects/compiler-rt/lib/interception/interception_linux.h b//projects/compiler-rt/lib/interception/interception_linux.h
+--- a//projects/compiler-rt/lib/interception/interception_linux.h	2013-11-12 10:21:52.000000000 +0000
++++ b//projects/compiler-rt/lib/interception/interception_linux.h	2014-01-13 05:20:19.617945048 +0000
+@@ -34,14 +34,8 @@
+           (::__interception::uptr)&(func), \
+           (::__interception::uptr)&WRAP(func))
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
+-# define INTERCEPT_FUNCTION_VER_LINUX(func, symver) \
+-     ::__interception::real_##func = (func##_f)(unsigned long) \
+-         ::__interception::GetFuncAddrVer(#func, symver)
+-#else
+ # define INTERCEPT_FUNCTION_VER_LINUX(func, symver) \
+      INTERCEPT_FUNCTION_LINUX(func)
+-#endif  // !defined(__ANDROID__)
+ 
+ #endif  // INTERCEPTION_LINUX_H
+ #endif  // __linux__
+diff -ru a//utils/unittest/googletest/src/gtest.cc b//utils/unittest/googletest/src/gtest.cc
+--- a//utils/unittest/googletest/src/gtest.cc	2013-11-19 00:57:56.000000000 +0000
++++ b//utils/unittest/googletest/src/gtest.cc	2014-01-13 05:17:31.868944887 +0000
+@@ -120,6 +120,7 @@
+ 
+ #if GTEST_CAN_STREAM_RESULTS_
+ # include <arpa/inet.h>  // NOLINT
++# include <sys/socket.h>
+ # include <netdb.h>  // NOLINT
+ #endif
+ 

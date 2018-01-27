@@ -1,0 +1,266 @@
+--- audacity-src-2.0.2.org/src/TrackPanel.cpp	2013-01-02 20:38:15.235000003 +0000
++++ audacity-src-2.0.2/src/TrackPanel.cpp	2013-01-07 22:04:02.421000002 +0000
+@@ -7295,7 +7295,7 @@
+       wxArrayString rates;
+       wxComboBox *cb;
+ 
+-      rate.Printf(wxT("%d"), lrint(((WaveTrack *) mPopupMenuTarget)->GetRate()));
++      rate.Printf(wxT("%ld"), lrint(((WaveTrack *) mPopupMenuTarget)->GetRate()));
+ 
+       rates.Add(wxT("8000"));
+       rates.Add(wxT("11025"));
+@@ -7547,7 +7547,7 @@
+          /* i18n-hint: (noun) The size of the typeface*/
+          S.AddPrompt(_("Face size"));
+          sc = new wxSpinCtrl(&dlg, wxID_ANY,
+-                             wxString::Format(wxT("%d"), fontsize),
++                             wxString::Format(wxT("%ld"), (long) fontsize),
+                              wxDefaultPosition,
+                              wxDefaultSize,
+                              wxSP_ARROW_KEYS,
+--- audacity-src-2.0.2.org/src/commands/Validators.h	2013-01-02 20:38:15.222000003 +0000
++++ audacity-src-2.0.2/src/commands/Validators.h	2013-01-07 22:00:15.952000004 +0000
+@@ -201,7 +201,7 @@
+    }
+    virtual wxString GetDescription() const
+    {
+-      return wxString::Format(wxT("between %d and %d"), mLower, mUpper);
++      return wxString::Format(wxT("between %f and %f"), mLower, mUpper);
+    }
+    virtual Validator *GetClone() const
+    {
+--- audacity-src-2.0.2.org/lib-src/libnyquist/nyquist/xlisp/xlisp.h	2013-01-02 20:38:15.166000003 +0000
++++ audacity-src-2.0.2/lib-src/libnyquist/nyquist/xlisp/xlisp.h	2013-01-07 22:10:13.035000003 +0000
+@@ -190,7 +190,7 @@
+ #define LOCAL		static
+ #endif
+ #ifndef AFMT
+-#define AFMT		"%x"
++#define AFMT		"%lx"
+ #endif
+ #ifndef FIXTYPE
+ #define FIXTYPE		long
+--- audacity-src-2.0.2.org/lib-src/libnyquist/nyquist/nyqsrc/add.c	2013-01-02 20:38:15.177000003 +0000
++++ audacity-src-2.0.2/lib-src/libnyquist/nyquist/nyqsrc/add.c	2013-01-07 22:13:07.764000002 +0000
+@@ -126,7 +126,7 @@
+          * if a sound has terminated)
+          */
+ A	nyquist_printf(
+- "add[%p,%p] (s1_s2_nn) %p: logically_stopped %d, logical_stop_cnt %d, s1 logical_stop_cnt %d, s2 logical_stop_cnt %d \n",
++ "add[%p,%p] (s1_s2_nn) %p: logically_stopped %d, logical_stop_cnt %d, s1 logical_stop_cnt %ld, s2 logical_stop_cnt %ld \n",
+                susp->s1, susp->s2, susp, susp->logically_stopped, 
+                (int) susp->susp.log_stop_cnt,
+                susp->s1->logical_stop_cnt,
+--- audacity-src-2.0.2.org/src/Sequence.cpp	2013-01-02 20:38:15.231000003 +0000
++++ audacity-src-2.0.2/src/Sequence.cpp	2013-01-07 22:30:14.574000004 +0000
+@@ -1099,7 +1099,7 @@
+ 
+    if (result != len) 
+    {
+-      wxLogWarning(wxT("Expected to read %d samples, got %d samples."), len, result);
++      wxLogWarning(wxT("Expected to read %ld samples, got %ld samples."), (long) len, (long) result);
+       if (result < 0)
+          result = 0;
+       ClearSamples(buffer, format, result, len-result);
+@@ -1826,11 +1826,11 @@
+    for (i = 0; i < mBlock->GetCount(); i++) {
+       SeqBlock* pSeqBlock = mBlock->Item(i);
+       *dest += wxString::Format
+-         (wxT("   Block %3d: start %8d, len %8d, refs %d, "),
++         (wxT("   Block %3d: start %8ld, len %8ld, refs %ld, "),
+           i,
+-          pSeqBlock->start,
+-          pSeqBlock->f ? pSeqBlock->f->GetLength() : 0,
+-          pSeqBlock->f ? mDirManager->GetRefCount(pSeqBlock->f) : 0);
++          (long) pSeqBlock->start,
++          (long) (pSeqBlock->f ? pSeqBlock->f->GetLength() : 0),
++          (long) (pSeqBlock->f ? mDirManager->GetRefCount(pSeqBlock->f) : 0));
+ 
+       if (pSeqBlock->f)
+          *dest += pSeqBlock->f->GetFileName().GetFullName();
+@@ -1847,7 +1847,7 @@
+    }
+    if (pos != mNumSamples)
+       *dest += wxString::Format
+-         (wxT("ERROR mNumSamples = %d\n"), mNumSamples);
++         (wxT("ERROR mNumSamples = %ld\n"), (long) mNumSamples);
+ }
+ 
+ // static
+--- audacity-src-2.0.2.org/src/LabelTrack.cpp	2013-01-02 20:38:15.230000003 +0000
++++ audacity-src-2.0.2/src/LabelTrack.cpp	2013-01-07 22:31:47.921000004 +0000
+@@ -2150,7 +2150,7 @@
+          {
+             if (nValue < 0)
+             {
+-               wxLogWarning(wxT("Project shows negative number of labels: %d"), nValue);
++               wxLogWarning(wxT("Project shows negative number of labels: %ld"), (long) nValue);
+                return false;
+             }
+             mLabels.Clear();
+--- audacity-src-2.0.2.org/src/Menus.cpp	2013-01-02 20:38:15.228000003 +0000
++++ audacity-src-2.0.2/src/Menus.cpp	2013-01-07 22:33:14.664000004 +0000
+@@ -6444,7 +6444,7 @@
+       wxArrayString rates;
+       wxComboBox *cb;
+ 
+-      rate.Printf(wxT("%d"), lrint(mRate));
++      rate.Printf(wxT("%ld"), lrint(mRate));
+ 
+       rates.Add(wxT("8000"));
+       rates.Add(wxT("11025"));
+--- audacity-src-2.0.2.org/src/Shuttle.cpp	2013-01-02 20:38:15.225000003 +0000
++++ audacity-src-2.0.2/src/Shuttle.cpp	2013-01-07 22:34:25.101000002 +0000
+@@ -189,7 +189,7 @@
+    else
+    {
+       /// \todo Fix for long long values.
+-      mValueString = wxString::Format(wxT("%d"),iValue);
++      mValueString = wxString::Format(wxT("%ld"), (long)iValue);
+       return ExchangeWithMaster( Name );
+    }
+    return true;
+--- audacity-src-2.0.2.org/src/import/Import.cpp	2013-01-02 20:38:15.225000003 +0000
++++ audacity-src-2.0.2/src/import/Import.cpp	2013-01-07 22:42:00.801000003 +0000
+@@ -278,7 +278,7 @@
+                val.Append (wxT(":"));
+          }
+       }
+-      name.Printf (wxT("/ExtImportItems/Item%d"), i);
++      name.Printf (wxT("/ExtImportItems/Item%lu"), (unsigned long) i);
+       gPrefs->Write (name, val);
+       gPrefs->Flush();
+    }
+@@ -287,7 +287,7 @@
+    more to delete.*/
+    i = this->mExtImportItems->Count();
+    do {
+-     name.Printf (wxT("/ExtImportItems/Item%d"), i);
++     name.Printf (wxT("/ExtImportItems/Item%lu"), (unsigned long) i);
+      // No item to delete?  Then it's time to finish.
+      if (!gPrefs->Read(name, &val))
+         break;
+--- audacity-src-2.0.2.org/src/toolbars/DeviceToolBar.cpp	2013-01-02 20:38:15.234000003 +0000
++++ audacity-src-2.0.2/src/toolbars/DeviceToolBar.cpp	2013-01-07 22:44:22.487000002 +0000
+@@ -618,7 +618,7 @@
+                name = _("2 (Stereo) Input Channels");
+             }
+             else {
+-               name = wxString::Format(wxT("%d"), j + 1);
++               name = wxString::Format(wxT("%lu"), (unsigned long) j + 1);
+             }
+             mInputChannels->Append(name);
+          }
+--- audacity-src-2.0.2.org/src/widgets/FileHistory.cpp	2013-01-02 20:38:15.223000003 +0000
++++ audacity-src-2.0.2/src/widgets/FileHistory.cpp	2013-01-07 22:47:01.610000004 +0000
+@@ -142,7 +142,7 @@
+    // Stored in reverse order
+    int n = mHistory.GetCount() - 1;
+    for (size_t i = 1; i <= mHistory.GetCount(); i++) {
+-      config.Write(wxString::Format(wxT("file%02d"), i), mHistory[n--]);
++      config.Write(wxString::Format(wxT("file%02lu"), (unsigned long) i), mHistory[n--]);
+    }
+ 
+    config.SetPath(wxT(".."));
+--- audacity-src-2.0.2.org/src/import/ImportFFmpeg.cpp	2013-01-02 20:38:15.225000003 +0000
++++ audacity-src-2.0.2/src/import/ImportFFmpeg.cpp	2013-01-07 22:50:00.779000003 +0000
+@@ -539,7 +539,9 @@
+       if (mScs[s]->m_stream->start_time != int64_t(AV_NOPTS_VALUE) && mScs[s]->m_stream->start_time > 0)
+       {
+          stream_delay = mScs[s]->m_stream->start_time;
+-         wxLogError(wxT("Stream %d start_time = %d, that would be %f milliseconds."), s, mScs[s]->m_stream->start_time, double(mScs[s]->m_stream->start_time)/AV_TIME_BASE*1000);
++         wxLogError(wxT("Stream %lld start_time = %lld, that would be %f milliseconds."), 
++                         (long long) s, (long long) mScs[s]->m_stream->start_time,
++                         double(mScs[s]->m_stream->start_time)/AV_TIME_BASE*1000);
+       }
+       if (stream_delay != 0)
+       {
+--- audacity-src-2.0.2.org/src/effects/ladspa/LoadLadspa.cpp	2013-01-02 20:38:15.220000003 +0000
++++ audacity-src-2.0.2/src/effects/ladspa/LoadLadspa.cpp	2013-01-07 22:51:17.953000003 +0000
+@@ -146,7 +146,7 @@
+       data = mainFn(index);
+       while(data) {
+ 
+-         wxString uniqid = wxString::Format(wxT("%08x-%s"), data->UniqueID, LAT1CTOWX(data->Label).c_str());
++         wxString uniqid = wxString::Format(wxT("%08lx-%s"), data->UniqueID, LAT1CTOWX(data->Label).c_str());
+          if (uniq.Index(uniqid) == wxNOT_FOUND) {
+             uniq.Add(uniqid);
+             std::set<wxString> categories;
+--- audacity-src-2.0.2.org/lib-src/libnyquist/nyquist/nyqsrc/sndwritepa.c	2013-01-02 20:38:15.179000003 +0000
++++ audacity-src-2.0.2/lib-src/libnyquist/nyquist/nyqsrc/sndwritepa.c	2013-01-07 22:59:39.935000003 +0000
+@@ -138,7 +138,7 @@
+ {
+     char msgbuffer[256];
+     if (err != paNoError) {
+-        sprintf(msgbuffer, "%s, error %ld, %s.", problem, err, 
++        sprintf(msgbuffer, "%s, error %ld, %s.", problem, (long) err, 
+                             Pa_GetErrorText(err));
+         xlerrprint("warning", NULL, msgbuffer, s_unbound);
+         return true;
+@@ -267,7 +267,7 @@
+                            "using PCM instead\n");
+         } /* no break here, fall through to SND_MODE_PCM... */
+     default:
+-        nyquist_printf("s-save: unrecognized mode (%d), using PCM\n",
++        nyquist_printf("s-save: unrecognized mode (%ld), using PCM\n",
+                        mode);
+         /* no break, fall through as SND_MODE_PCM */
+     case SND_MODE_PCM: 
+@@ -278,7 +278,7 @@
+         else {
+             sf_mode = SF_FORMAT_PCM_16;
+             nyquist_printf(
+-                    "s-save: bad bits parameter (%d), using 16-bit PCM\n",
++                    "s-save: bad bits parameter (%ld), using 16-bit PCM\n",
+                     bits);
+         }
+         break;
+@@ -300,7 +300,7 @@
+         else {
+             sf_mode = SF_FORMAT_DPCM_16;
+             nyquist_printf(
+-                    "s-save: bad bits parameter (%d), using 16-bit DPCM\n",
++                    "s-save: bad bits parameter (%ld), using 16-bit DPCM\n",
+                     bits);
+         }
+         break;
+@@ -445,25 +445,25 @@
+     rslt = sf_seek(sndfile, frames, SEEK_SET);
+     if (rslt < 0) {
+         sprintf(error, "snd_overwrite: cannot seek to frame %lld of %s",
+-                frames, filename);
++                (long long) frames, filename);
+         xlabort(error);
+     }
+     if (sf_info->channels != channels) {
+         sprintf(error, "%s%ld%s%ld%s", 
+                 "snd_overwrite: number of channels in sound (",
+-                channels,
++                (long) channels,
+                 ") does not match\n    number of channels in file (",
+-                sf_info->channels, ")");
++                (long) sf_info->channels, ")");
+         sf_close(sndfile);
+         xlabort(error);
+     }
+ 
+     if (sf_info->samplerate != srate) {
+-        sprintf(error, "%s%g%s%ld%s",
++        sprintf(error, "%s%ld%s%ld%s",
+                 "snd_overwrite: sample rate in sound (",
+                 srate,
+                 ") does not match\n    sample rate in file (",
+-                sf_info->samplerate,
++                (long) sf_info->samplerate,
+                 ")"); 
+         sf_close(sndfile);
+         xlabort(error);
+@@ -746,7 +746,7 @@
+         for (i = 0; i < chans; i++) {
+             if (state[i].cnt == 0) {
+                 if (sndwrite_trace) {
+-                    nyquist_printf("CALLING SOUND_GET_NEXT ON CHANNEL %ld (%x)\n",
++                    nyquist_printf("CALLING SOUND_GET_NEXT ON CHANNEL %ld (%lx)\n",
+ 				   i, (unsigned long) state[i].sound); /* jlh 64 bit issue */
+                     sound_print_tree(state[i].sound);
+                 }

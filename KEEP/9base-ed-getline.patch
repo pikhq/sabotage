@@ -1,0 +1,21 @@
+diff -Naur 9base-6/ed/ed.c 9base-6.new/ed/ed.c
+--- 9base-6/ed/ed.c	2010-06-04 03:46:05.000000000 -0700
++++ 9base-6.new/ed/ed.c	2013-08-09 08:08:30.476590391 -0700
+@@ -94,7 +94,7 @@
+ int	getchr(void);
+ int	getcopy(void);
+ int	getfile(void);
+-Rune*	getline(int);
++static Rune*	getline(int);
+ int	getnum(void);
+ int	getsub(void);
+ int	gettty(void);
+@@ -1005,7 +1005,7 @@
+ 	fchange = 1;
+ }
+ 
+-Rune*
++static Rune*
+ getline(int tl)
+ {
+ 	Rune *lp, *bp;

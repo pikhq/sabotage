@@ -1,0 +1,27 @@
+--- attr-2.4.47.org/include/xattr.h
++++ attr-2.4.47/include/xattr.h
+@@ -30,8 +30,13 @@
+ #define XATTR_CREATE  0x1       /* set value, fail if attr already exists */
+ #define XATTR_REPLACE 0x2       /* set value, fail if attr does not exist */
+ 
++#ifndef __THROW
++#define __THROW
++#endif
+ 
+-__BEGIN_DECLS
++#ifdef __cplusplus
++extern "C" {
++#endif
+ 
+ extern int setxattr (const char *__path, const char *__name,
+ 		      const void *__value, size_t __size, int __flags) __THROW;
+@@ -58,6 +63,8 @@
+ extern int lremovexattr (const char *__path, const char *__name) __THROW;
+ extern int fremovexattr (int __filedes,   const char *__name) __THROW;
+ 
+-__END_DECLS
++#ifdef __cplusplus
++}
++#endif
+ 
+ #endif	/* __XATTR_H__ */

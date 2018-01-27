@@ -1,0 +1,31 @@
+[mirrors]
+http://cdn.kernel.org/pub/software/utils/pciutils/pciutils-3.5.6.tar.xz
+
+[vars]
+filesize=328256
+sha512=e3ede8051de6911a63eb3f60d684996845d7f02e32f02f2e5c5b91f6b27f5a59b8c9662cb42e28de70517684e539f7f8a26da30a69f5be1b66fb49a17dc2b6f4
+pkgver=6
+
+[deps]
+musl
+kmod
+xz
+
+[build]
+patch -p1 < "$K"/pciutils-pread.patch
+
+make CFLAGS="-D_GNU_SOURCE -DHAVE_PREAD $optcflags" LDFLAGS="$optldflags -llzma" \
+  PREFIX="$butch_prefix" SBINDIR="$butch_prefix"/bin \
+  DESTDIR="$butch_install_dir" CC="$CC" STRIP= \
+  HOST=$($CC -dumpmachine) \
+  -j$MAKE_THREADS all install
+make CFLAGS="-D_GNU_SOURCE -DHAVE_PREAD $optcflags" LDFLAGS="$optldflags -llzma" \
+  PREFIX="$butch_prefix" SBINDIR="$butch_prefix"/bin \
+  DESTDIR="$butch_install_dir" CC="$CC" STRIP= \
+  HOST=$($CC -dumpmachine) \
+  -j$MAKE_THREADS install-lib
+
+dest="$butch_install_dir""$butch_prefix"
+sed -i '/^Libs:/d' "$dest"/lib/pkgconfig/libpci.pc
+sed -i 's/^Libs.private:/Libs: -lpci /' "$dest"/lib/pkgconfig/libpci.pc
+

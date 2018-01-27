@@ -1,0 +1,26 @@
+--- linux-3.10.5/net/9p/trans_virtio.c
++++ linux-3.10.5.patched/net/9p/trans_virtio.c
+@@ -610,8 +610,12 @@
+ 	int ret = -ENOENT;
+ 	int found = 0;
+ 
++again:
+ 	mutex_lock(&virtio_9p_lock);
++	printk(KERN_WARNING "want device %s\n", devname);
+ 	list_for_each_entry(chan, &virtio_chan_list, chan_list) {
++	printk(KERN_WARNING "got device %s\n", chan->tag);
++
+ 		if (!strncmp(devname, chan->tag, chan->tag_len) &&
+ 		    strlen(devname) == chan->tag_len) {
+ 			if (!chan->inuse) {
+@@ -625,6 +629,10 @@
+ 	mutex_unlock(&virtio_9p_lock);
+ 
+ 	if (!found) {
++		if(!strncmp(devname, "/dev/", 5)) {
++			devname+=5;
++			goto again;
++		}
+ 		pr_err("no channels available\n");
+ 		return ret;
+ 	}

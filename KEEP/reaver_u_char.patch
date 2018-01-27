@@ -1,0 +1,10 @@
+--- reaver-1.4.org/src/libwps/libwps.h
++++ reaver-1.4/src/libwps/libwps.h
+@@ -17,6 +17,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <arpa/inet.h>
++#include <sys/types.h> /* u_char */
+ 
+ #define LIBWPS_MAX_STR_LEN 256
+ 

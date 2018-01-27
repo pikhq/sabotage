@@ -1,0 +1,23 @@
+[mirrors]
+http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.46.tar.xz
+
+[vars]
+filesize=702884
+sha512=6ab9f705a2cdc5003a14bf0bab7a91c55ba001e6f51b3d78a2e43aee2360a2328c8680c3c546411e25f5d9c05e1b798ac84ba7ccf2bb697d754509dcd2987462
+pkgver=6
+desc='http daemon which is supposedly lightweight (in comparison with apache)'
+
+[deps]
+libressl
+bzip2
+pcre
+
+[build]
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > tests/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE -DUIO_MAXIOV=1024 $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

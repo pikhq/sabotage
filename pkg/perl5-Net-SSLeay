@@ -1,0 +1,17 @@
+[mirrors]
+http://search.cpan.org/CPAN/authors/id/M/MI/MIKEM/Net-SSLeay-1.80.tar.gz
+
+[vars]
+filesize=395820
+sha512=03b5f2ba86d20f31ef50029af94b1bcf513c7b99d9666a04e83aba4f7c8cce3e30daf6df85932619949f059177660f49a928488e61b967a12dd4aec41eafad95
+pkgver=2
+
+[deps]
+perl
+
+[build]
+perl Makefile.PL
+make -j$MAKE_THREADS
+[ -z "$CROSS_COMPILE" ] && make test
+make DESTDIR="$butch_install_dir" install
+

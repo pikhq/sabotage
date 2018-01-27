@@ -1,0 +1,23 @@
+[mirrors]
+ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.41.tar.bz2
+http://sourceforge.net/projects/pcre/files/pcre/8.41/pcre-8.41.tar.bz2
+
+[vars]
+filesize=1561874
+sha512=cc9cdbeb98c010fe4f093a019bebfb91965dae4c6a48f8e49c38ec8df7d9da7f0d32c12fc58f22c51f1c2f010e72b65bcbf8bbf180060e93edf464fa9a7c3551
+pkgver=3
+desc='library for perl compatible regular expressions'
+
+[deps]
+zlib
+
+[build]
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+CXXFLAGS="$CFLAGS" \
+LDFLAGS="$optldflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-utf8 --enable-unicode-properties \
+  --enable-pcregrep-libz --disable-cpp
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

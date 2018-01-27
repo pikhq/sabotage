@@ -1,0 +1,118 @@
+--- epdfview-0.1.8.org/src/gtk/PageView.cxx	2013-01-12 17:56:07.773000003 +0000
++++ epdfview-0.1.8/src/gtk/PageView.cxx	2013-01-12 17:57:16.329000003 +0000
+@@ -508,7 +508,7 @@
+     }
+ 
+     gint scrollBarSpacing = 0;
+-    gtk_widget_style_get (widget, "scrollbar-spacing", &scrollBarSpacing, NULL);
++    gtk_widget_style_get (widget, "scrollbar-spacing", &scrollBarSpacing, (void *) 0);
+ 
+     GtkWidget *vScrollBar = GTK_SCROLLED_WINDOW (widget)->vscrollbar;
+     *width = vScrollBar->allocation.width +
+--- epdfview-0.1.8.org/src/gtk/MainView.cxx	2013-01-12 17:56:07.773000003 +0000
++++ epdfview-0.1.8/src/gtk/MainView.cxx	2013-01-12 18:00:38.478000002 +0000
+@@ -331,7 +331,7 @@
+             GTK_FILE_CHOOSER_ACTION_OPEN,
+             GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+             GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+-            NULL);
++            (void *) 0);
+     gtk_dialog_set_alternative_button_order (GTK_DIALOG (openDialog),
+             GTK_RESPONSE_ACCEPT, GTK_RESPONSE_CANCEL, -1);
+ 
+@@ -439,7 +439,7 @@
+             GTK_FILE_CHOOSER_ACTION_SAVE,
+             GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+             GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+-            NULL);
++            (void *) 0);
+     gtk_file_chooser_set_do_overwrite_confirmation (
+             GTK_FILE_CHOOSER (saveDialog), TRUE);
+     gtk_dialog_set_alternative_button_order (GTK_DIALOG (saveDialog),
+@@ -940,13 +940,13 @@
+         g_object_set_property (G_OBJECT (renderer),
+                                "ellipsize", &ellipsizeMode);
+         gtk_tree_view_column_pack_start (column, renderer, TRUE);
+-        gtk_tree_view_column_set_attributes (column, renderer, "text", 0, NULL);
++        gtk_tree_view_column_set_attributes (column, renderer, "text", 0, (void *) 0);
+     }
+ 
+     {
+         GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+         gtk_tree_view_column_pack_end (column, renderer, FALSE);
+-        gtk_tree_view_column_set_attributes (column, renderer, "text", 1, NULL);
++        gtk_tree_view_column_set_attributes (column, renderer, "text", 1, (void *) 0);
+     }
+ 
+     // Set the change signal of the selection.
+@@ -1043,7 +1043,7 @@
+     for ( int iconIndex = 0 ; iconIndex < iconFilesNum ; iconIndex++ )
+     {
+         gchar *filename = g_strconcat (DATADIR, "/pixmaps/", 
+-                                       iconFiles[iconIndex], NULL);
++                                       iconFiles[iconIndex], (void *) 0);
+         GError *error = NULL;
+         GdkPixbuf *iconPixbuf = gdk_pixbuf_new_from_file (filename, &error);
+         if ( NULL != iconPixbuf )
+@@ -1133,7 +1133,7 @@
+     };
+     gchar *licenseTranslated = g_strconcat (_(license[0]), "\n",
+                                             _(license[1]), "\n",
+-                                            _(license[2]), "\n", NULL);
++                                            _(license[2]), "\n", (void *) 0);
+     gtk_about_dialog_set_url_hook (main_window_about_box_url_hook, NULL, NULL);
+     gtk_show_about_dialog (NULL,
+             "name", _("ePDFView"),
+@@ -1144,7 +1144,7 @@
+             "authors", authors,
+             "comments", comments,
+             "translator-credits", _("translator-credits"),
+-            NULL);
++            (void *) 0);
+ 
+     g_free (licenseTranslated);
+ }
+--- epdfview-0.1.8.org/src/Config.cxx	2013-01-12 17:56:07.775000003 +0000
++++ epdfview-0.1.8/src/Config.cxx	2013-01-12 18:01:26.216000003 +0000
+@@ -500,9 +500,9 @@
+ getConfigFileName ()
+ {
+     gchar *configDir = 
+-        g_build_filename (g_get_user_config_dir (), PACKAGE, NULL);
++        g_build_filename (g_get_user_config_dir (), PACKAGE, (void *) 0);
+     g_mkdir_with_parents (configDir, 0700);
+-    gchar *configFile = g_build_filename (configDir, "main.conf", NULL);
++    gchar *configFile = g_build_filename (configDir, "main.conf", (void *) 0);
+     g_free (configDir);
+ 
+     return configFile;
+--- epdfview-0.1.8.org/src/PDFDocument.cxx	2013-01-12 17:56:07.774000003 +0000
++++ epdfview-0.1.8/src/PDFDocument.cxx	2013-01-12 18:02:27.624000002 +0000
+@@ -370,7 +370,7 @@
+             "producer", &producer,
+             "subject", &subject,
+             "title", &title,
+-            NULL);
++            (void *) 0);
+     setAuthor (author);
+     if ( 0 < creationDate )
+     {
+@@ -936,7 +936,7 @@
+     else
+     {
+         gchar *currentDir = g_get_current_dir ();
+-        absoluteFileName = g_build_filename (currentDir, fileName, NULL);
++        absoluteFileName = g_build_filename (currentDir, fileName, (void *) 0);
+         g_free (currentDir);
+     }
+ 
+--- epdfview-0.1.8.org/src/IJob.cxx	2013-01-12 17:56:07.775000003 +0000
++++ epdfview-0.1.8/src/IJob.cxx	2013-01-12 18:03:31.600000002 +0000
+@@ -66,6 +66,7 @@
+ #else
+     sleep(0);
+ #endif
++   return 0;
+ }
+ 
+ ///

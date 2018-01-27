@@ -1,0 +1,18 @@
+[deps]
+libxext
+libxt
+
+[vars]
+filesize=396230
+sha512=eba4e3d10f7d75ba8464881fb69f295a89774a4b37793197d75f3312e3a342b2df8b7e13e3f5c887962704329b5347ff2f3395e229af9dadf46a93b1e8613cfc
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libXmu-1.1.2.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make V=1 DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

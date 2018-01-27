@@ -1,0 +1,30 @@
+--- nmap-6.01.org/configure	2012-09-08 19:12:10.079000002 +0000
++++ nmap-6.01/configure	2012-09-08 19:12:31.844000002 +0000
+@@ -6308,6 +6308,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ extern char pcap_version[];
+ int main() {
+   int major, minor1, minor2;
+--- nmap-6.01.org/ncat/configure	2012-09-08 19:12:09.560000002 +0000
++++ nmap-6.01/ncat/configure	2012-09-08 19:13:17.825000002 +0000
+@@ -4788,6 +4788,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ extern char pcap_version[];
+ int main() {
+   int major, minor1, minor2;
+--- nmap-6.01.org/nping/configure	2012-09-08 19:12:09.578000002 +0000
++++ nmap-6.01/nping/configure	2012-09-08 19:13:40.689000002 +0000
+@@ -5228,6 +5228,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ extern char pcap_version[];
+ int main() {
+   int major, minor1, minor2;

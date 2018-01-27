@@ -1,0 +1,18 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/app/xmodmap-1.0.7.tar.gz
+
+[vars]
+filesize=167787
+sha512=b9cdc91d6d40015076593db3e8050cbdd127834cba3f8b1703949eec259ad4ae90f5170520c22ec919c41150ac475317558658aaee70e4cd30494f4b43e1d63b
+
+[deps]
+libx11
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

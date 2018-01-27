@@ -1,0 +1,52 @@
+[mirrors]
+https://github.com/SupSuper/OpenXcom/archive/v1.0.tar.gz
+
+[vars]
+filesize=2068640
+sha512=597abd2e7160551a3d6020d7c6fec863f86b708910ee582d446f2a5f97be94dc7e2522ede2e7ab4f62a2d21acf07ce441a435f74b530950e2f0b5791c00e06ab
+tardir=OpenXcom-1.0
+tarball=OpenXcom-1.0.tar.gz
+
+[deps]
+ca-certificates
+glu
+libx11
+mesalib
+sdl
+sdl-gfx
+sdl-image
+sdl-mixer
+timidity
+yaml-cpp
+
+[deps.host]
+cmake
+
+[build]
+mkdir -p build && cd build
+for i in ar ld nm objcopy objdump strip ; do
+printf '#!/bin/sh\n%s%s "$@"\n' "$CROSS_COMPILE" "$i" > "$CROSS_COMPILE""$i"
+chmod +x "$CROSS_COMPILE""$i"
+done
+[ -n "$CROSS_COMPILE" ] && xconfflags="
+-DCMAKE_FIND_ROOT_PATH=$butch_root_dir$butch_prefix \
+-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+-DCMAKE_AR="$CROSS_COMPILE"ar \
+-DCMAKE_LD="$CROSS_COMPILE"ld \
+-DCMAKE_NM="$CROSS_COMPILE"nm \
+-DCMAKE_OBJCOPY="$CROSS_COMPILE"objcopy \
+-DCMAKE_OBJDUMP="$CROSS_COMPILE"objdump \
+-DCMAKE_STRIP="$CROSS_COMPILE"strip \
+"
+
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+CXXFLAGS="$optcflags" \
+cmake $xconfflags \
+  -DCMAKE_INSTALL_PREFIX="$butch_prefix" \
+  -DCMAKE_VERBOSE_MAKEFILE=ON \
+  ..
+make -j$MAKE_THREADS VERBOSE=1
+make DESTDIR="$butch_install_dir" install

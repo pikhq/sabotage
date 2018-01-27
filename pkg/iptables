@@ -1,0 +1,26 @@
+[mirrors]
+http://ftp.netfilter.org/pub/iptables/iptables-1.6.1.tar.bz2
+
+[vars]
+filesize=620890
+sha512=12280db6e6ef8e68da2537e9da59fc601790fd02b1ba38a37c90dbb56272018329dccb8be995f96ecd5d94fafa6043204f3e8f8ee96531685d9e3c55359d2ee8
+pkgver=2
+
+[deps]
+musl
+kernel-headers
+
+[deps.host]
+pkgconf
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="-D_GNU_SOURCE -DSTDC_HEADERS $optcflags" \
+LDFLAGS="$optldflags -static" \
+ ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --sbindir="$butch_prefix"/bin \
+  --disable-shared \
+  --disable-nftables
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

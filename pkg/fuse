@@ -1,0 +1,21 @@
+[mirrors]
+https://github.com/libfuse/libfuse/releases/download/fuse-2.9.7/fuse-2.9.7.tar.gz
+
+[vars]
+filesize=661138
+sha512=f47304d9c7a1815f7a2905b7bdb7785d4c10292a80c8dc1ec45d895af96bc6ffd6d84ff2617bd976a1d0867ab8ec1a404a5a05ace85a69ecca830f371d08f8e2
+pkgver=2
+
+[deps]
+
+[build]
+patch -p1 < "$K"/fuse-headers.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

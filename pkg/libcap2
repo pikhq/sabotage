@@ -1,0 +1,31 @@
+[mirrors]
+https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.25.tar.xz
+
+[vars]
+filesize=63672
+sha512=c3ab491885292adc171cde542b96f1295e84132febb50112a46575c3bde3a3eb6fcf733f7a756b4b656e013c0abb5ed6571db24799f8c0b23d8f759f992864f9
+pkgver=2
+
+[deps]
+attr
+
+[build]
+sed -i 's,BUILD_GPERF := ,BUILD_GPERF := no #,' Make.Rules
+sed -i 's@/bin/bash@/bin/sh@g' progs/capsh.c
+
+cp "$K"/libcap2-cap_names.h libcap/cap_names.h
+touch libcap/cap_names.list.h libcap/_makenames libcap/cap_names.h
+
+make -j$MAKE_THREADS prefix="$butch_prefix" lib=lib \
+  CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  BUILD_CC="$HOSTCC" CC="$CC"
+
+make RAISE_SETFCAP=no FAKEROOT="$butch_install_dir" prefix="$butch_prefix" \
+SBINDIR="$butch_prefix"/bin lib=lib install
+
+dest="$butch_install_dir""$butch_prefix"
+LIBDIR="$dest"/lib
+SBINDIR="$dest"/bin
+
+LD_LIBRARY_PATH=${LIBDIR} ${SBINDIR}/setcap cap_setfcap=i ${SBINDIR}/setcap || echo \
+  "there was an error setting caps, you may want to investigate this"

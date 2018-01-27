@@ -1,0 +1,30 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/libwnck/2.29/libwnck-2.29.6.tar.bz2
+
+[vars]
+filesize=686407
+sha512=b6054fd07e949345d4c06591e1a41d3e426f7ed9e95180e320b1f4dd513a93cd2d07951f8f16eb6d3b62a8d7e8f7604e8ab837a5456165d3f9ac1eb41a5896c0
+
+[deps]
+libstartup-notification
+libxt
+gtk+2
+
+[build]
+. "$K"/intltool-fix
+
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+for i in po ; do
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,31 @@
+[mirrors]
+ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.27.tar.bz2
+http://luci.subsignal.org/~trondah/tree/dl/libgpg-error-1.27.tar.bz2
+http://x.vm0.ru/wl500g-repo/sources-mirror/libgpg-error-1.27.tar.bz2
+http://mirrors.dotsrc.org/gcrypt/libgpg-error/libgpg-error-1.27.tar.bz2
+http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.27.tar.bz2
+
+[vars]
+filesize=813060
+sha512=51b313c1159074fdbbce84f63bd8afd84b3b58cd608714865b25bed84c1862d050708aa06ac3dab92f1906593df5121161e594c2809653b0fb2c236cae5dcc2f
+pkgver=5
+desc='library defining common error values for all GnuPG components'
+
+[deps]
+
+[build]
+patch -p1 < "$K"/libgpg-error-xcompile-lock.patch
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS=-D_GNU_SOURCE CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls \
+  --disable-languages \
+  --disable-doc \
+  --disable-tests \
+  --enable-threads=posix
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

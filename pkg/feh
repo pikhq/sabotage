@@ -1,0 +1,21 @@
+[mirrors]
+http://feh.finalrewind.org/feh-2.18.2.tar.bz2
+
+[vars]
+filesize=2127763
+sha512=39a4b1499c3389f74c3692e1cbb774ce1fa41e206cc298c2589a24c91033f6c211e214661f29ae2c9f37e7846ff41d28e1b06015aecc917b422110a93bad5950
+pkgver=4
+desc='command-line oriented X11 image viewer'
+
+[deps]
+curl
+giblib
+libxinerama
+libexif
+libxt
+
+[build]
+CFLAGS="-D_GNU_SOURCE $optcflags -include string.h" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  make -j$MAKE_THREADS PREFIX="$butch_prefix" exif=1 help=1
+make PREFIX="$butch_prefix" DESTDIR="$butch_install_dir" install

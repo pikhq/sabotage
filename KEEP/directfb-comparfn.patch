@@ -1,0 +1,20 @@
+--- DirectFB-1.6.2.org/inputdrivers/lirc/lirc.c
++++ DirectFB-1.6.2/inputdrivers/lirc/lirc.c
+@@ -93,7 +93,7 @@
+           qsort ( keynames,
+                   D_ARRAY_SIZE( keynames ),
+                   sizeof(keynames[0]),
+-                  (__compar_fn_t) keynames_sort_compare );
++                  keynames_sort_compare );
+           keynames_sorted = true;
+      }
+ 
+@@ -120,7 +120,7 @@
+                symbol_name = bsearch( name, keynames,
+                                       D_ARRAY_SIZE( keynames ),
+                                       sizeof(keynames[0]),
+-                                      (__compar_fn_t) keynames_compare );
++                                      keynames_compare );
+                if (symbol_name)
+                     return symbol_name->symbol;
+                break;

@@ -1,0 +1,19 @@
+[mirrors]
+http://downloads.sourceforge.net/lcms/lcms2-2.7.tar.gz
+
+[vars]
+filesize=6497867
+sha512=9e69ec30efa9d50474808c6ae3d9afb0c5798eaabca0052f82d54efecdc2b58ab40434ee6dee9cd80028597d79a07f6b3b1a73f5293fc444343274eac3e32fd4
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

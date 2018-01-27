@@ -1,0 +1,33 @@
+[mirrors]
+http://milkytracker.titandemo.org/files/milkytracker-0.90.86.tar.bz2
+
+[vars]
+filesize=2202256
+sha512=8142f0b438e478571db25960d1b31f1d8c7e68feea96bdd238d1b1c1744105d929f18c990a301af6bebfc2d517bad687232410477ced6d8c4bfec8053cfcad8e
+pkgver=2
+
+[deps]
+alsa-lib
+sdl
+zlib
+zziplib
+
+[build]
+printf "#!/bin/sh\necho -lSDL -I$butch_root_dir$butch_prefix/include/SDL\n" > sdl-config
+chmod +x sdl-config
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+PATH="$PWD:$PATH" \
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags -std=gnu++03" \
+LDFLAGS="$optldflags -lasound -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+# install desktop file
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/share/applications
+cp "$K"/milkytracker.desktop "$dest"/share/applications/

@@ -1,0 +1,43 @@
+--- evince-2.32.0.org/backend/pdf/ev-poppler.cc	2013-01-08 08:57:54.874000002 +0000
++++ evince-2.32.0/backend/pdf/ev-poppler.cc	2013-01-09 19:57:35.834000002 +0000
+@@ -338,7 +338,7 @@
+ 
+ 	g_object_get (G_OBJECT (page->backend_page),
+ 		      "label", &label,
+-		      NULL);
++		      (void *) 0);
+ 	return label;
+ }
+ 
+@@ -678,7 +678,7 @@
+ 		      "mod-date", &(info->modified_date),
+ 		      "linearized", &(info->linearized),
+ 		      "metadata", &metadata,
+-		      NULL);
++		      (void *) 0);
+ 
+ 	if (metadata != NULL) {
+ 		pdf_document_parse_metadata (metadata, info);
+@@ -2755,11 +2755,11 @@
+ 					      "rectangle", &ev_rect,
+ 					      "popup_is_open", is_open,
+ 					      "has_popup", TRUE,
+-					      NULL);
++					      (void *) 0);
+ 			} else {
+ 				g_object_set (ev_annot,
+ 					      "has_popup", FALSE,
+-					      NULL);
++					      (void *) 0);
+ 			}
+ 
+ 			label = poppler_annot_markup_get_label (markup);
+@@ -2768,7 +2768,7 @@
+ 			g_object_set (ev_annot,
+ 				      "label", label,
+ 				      "opacity", opacity,
+-				      NULL);
++				      (void *) 0);
+ 
+ 			g_free (label);
+ 		}

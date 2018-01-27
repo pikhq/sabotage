@@ -1,0 +1,62 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/gtk+/3.16/gtk+-3.16.3.tar.xz
+
+[vars]
+filesize=18228560
+sha512=5ab6ff3f4e4c47dd8532027bfade1420524d48b53f7c7bcef4ee581095ecc53f33ac072076837ed34306d5d84103958b27a3099b10e5cf95c38fb34342fc8aa8
+
+[deps]
+gdk-pixbuf
+libepoxy
+glib
+pango
+cairo
+atk-bridge-fake
+atk
+libxi
+
+[build]
+# gdbus-codegen is a program usually delivered by glib, but we patch it out
+# because it requires python to build, and we don't do dbus
+mkdir bin
+cat << EOF > bin/gdbus-codegen
+#!/bin/sh
+touch gtkdbusgenerated.h
+touch gtkdbusgenerated.c
+#cp gtkdbusinterfaces.xml foo.xml
+#exit 1
+EOF
+chmod +x bin/gdbus-codegen
+# patch out crap relying on dbus
+cat << EOF > gtk/gtkmountoperation.c
+#define GMountOperation void
+#define GtkMountOperation void
+#define GtkWindow void
+#define GdkScreen void
+#define gboolean int
+#define GType unsigned long /* size_t */
+#define P __attribute__ ((visibility ("default")))
+extern GType g_mount_operation_get_type();
+P GType gtk_mount_operation_get_type() { return g_mount_operation_get_type(); }
+P GMountOperation *gtk_mount_operation_new (GtkWindow *parent) { return 0; }
+P gboolean gtk_mount_operation_is_showing (GtkMountOperation *op) { return 0; }
+P void gtk_mount_operation_set_parent (GtkMountOperation *op, GtkWindow *parent) {}
+P GtkWindow *gtk_mount_operation_get_parent (GtkMountOperation *op) { return 0; }
+P void gtk_mount_operation_set_screen (GtkMountOperation *op, GdkScreen *screen){}
+P GdkScreen *gtk_mount_operation_get_screen (GtkMountOperation *op){ return 0; }
+EOF
+for i in tests testsuite docs examples docs/reference docs/tools docs/reference/gtk docs/reference/libgail-util ; do
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > $i/Makefile.in
+done
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+PATH="$PWD/bin:$PATH" make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

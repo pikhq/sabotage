@@ -1,0 +1,83 @@
+--- evince-2.32.0.org/libview/ev-jobs.c	2013-01-08 08:57:52.781000002 +0000
++++ evince-2.32.0/libview/ev-jobs.c	2013-01-08 12:07:27.662000003 +0000
+@@ -154,7 +154,7 @@
+ 			      G_STRUCT_OFFSET (EvJobClass, cancelled),
+ 			      NULL, NULL,
+ 			      g_cclosure_marshal_VOID__VOID,
+-			      G_TYPE_NONE, 0);
++			      G_TYPE_NONE, 0, (void *) 0);
+ 	job_signals [FINISHED] =
+ 		g_signal_new ("finished",
+ 			      EV_TYPE_JOB,
+@@ -162,7 +162,7 @@
+ 			      G_STRUCT_OFFSET (EvJobClass, finished),
+ 			      NULL, NULL,
+ 			      g_cclosure_marshal_VOID__VOID,
+-			      G_TYPE_NONE, 0);
++			      G_TYPE_NONE, 0, (void *) 0);
+ }
+ 
+ static gboolean
+@@ -176,7 +176,7 @@
+ 		ev_debug_message (DEBUG_JOBS, "%s (%p) job was cancelled, do not emit finished", EV_GET_TYPE_NAME (job), job);
+ 	} else {
+ 		ev_profiler_stop (EV_PROFILE_JOBS, "%s (%p)", EV_GET_TYPE_NAME (job), job);
+-		g_signal_emit (job, job_signals[FINISHED], 0);
++		g_signal_emit (job, job_signals[FINISHED], 0, (void *) 0);
+ 	}
+ 	
+ 	return FALSE;
+@@ -202,7 +202,7 @@
+ 					 (GDestroyNotify)g_object_unref);
+ 	} else {
+ 		ev_profiler_stop (EV_PROFILE_JOBS, "%s (%p)", EV_GET_TYPE_NAME (job), job);
+-		g_signal_emit (job, job_signals[FINISHED], 0);
++		g_signal_emit (job, job_signals[FINISHED], 0, (void *) 0);
+ 	}
+ }
+ 
+@@ -226,7 +226,7 @@
+ 	/* This should never be called from a thread */
+ 	job->cancelled = TRUE;
+ 	g_cancellable_cancel (job->cancellable);
+-	g_signal_emit (job, job_signals[CANCELLED], 0);
++	g_signal_emit (job, job_signals[CANCELLED], 0, (void *) 0);
+ }
+ 
+ void
+@@ -846,7 +846,7 @@
+ 
+ 	job_fonts->scan_completed = !ev_document_fonts_scan (fonts, 20);
+ 	g_signal_emit (job_fonts, job_fonts_signals[FONTS_UPDATED], 0,
+-		       ev_document_fonts_get_progress (fonts));
++		       ev_document_fonts_get_progress (fonts), (void *) 0);
+ 
+ 	ev_document_fc_mutex_unlock ();
+ 	ev_document_doc_mutex_unlock ();
+@@ -872,7 +872,7 @@
+ 			      NULL, NULL,
+ 			      g_cclosure_marshal_VOID__DOUBLE,
+ 			      G_TYPE_NONE,
+-			      1, G_TYPE_DOUBLE);
++			      1, G_TYPE_DOUBLE, (void *) 0);
+ }
+ 
+ EvJob *
+@@ -1220,7 +1220,7 @@
+ 		job_find->has_results = (matches != NULL);
+ 
+ 	job_find->pages[job_find->current_page] = matches;
+-	g_signal_emit (job_find, job_find_signals[FIND_UPDATED], 0, job_find->current_page);
++	g_signal_emit (job_find, job_find_signals[FIND_UPDATED], 0, job_find->current_page, (void *) 0);
+ 		       
+ 	job_find->current_page = (job_find->current_page + 1) % job_find->n_pages;
+ 	if (job_find->current_page == job_find->start_page) {
+@@ -1249,7 +1249,7 @@
+ 			      NULL, NULL,
+ 			      g_cclosure_marshal_VOID__INT,
+ 			      G_TYPE_NONE,
+-			      1, G_TYPE_INT);
++			      1, G_TYPE_INT, (void *) 0);
+ }
+ 
+ EvJob *

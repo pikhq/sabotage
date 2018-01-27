@@ -1,0 +1,10 @@
+--- sox-14.4.1.org/src/formats.c	2013-06-01 17:38:31.738000003 +0000
++++ sox-14.4.1/src/formats.c	2013-06-01 17:38:49.815000003 +0000
+@@ -417,7 +417,6 @@
+   /* To fix this #error, either simply remove the #error line and live without
+    * file-type detection with pipes, or add support for your compiler in the
+    * lines above.  Test with cat monkey.wav | ./sox --info - */
+-  #error FIX NEEDED HERE
+   #define NO_REWIND_PIPE
+   (void)fp;
+ #endif

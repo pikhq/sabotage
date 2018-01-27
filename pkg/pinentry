@@ -1,0 +1,43 @@
+[mirrors]
+https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.0.0.tar.bz2
+http://www.ring.gr.jp/pub/net/gnupg/pinentry/pinentry-1.0.0.tar.bz2
+
+[vars]
+filesize=436930
+sha512=f109236707c51871b5020ef807a551366461fafcfbe09bf8cda19d4b163a42cf622562b905ceb41429f1d648b3f3d27807538709da6a135b67f9888709eccd62
+pkgver=2
+desc='dialogs for secure password input into gnupg'
+
+[deps]
+curses
+libassuan
+
+[build]
+sed -i 's@_MEMORY_H@MY_MEMORY_H@g' secmem/memory.h
+ln -sf memory.h secmem/mymemory.h
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+printf '#!/bin/sh\ntest "$1" = --version && echo 2.4.3 || printf %s -lassuan' > libassuan-config
+chmod +x libassuan-config
+
+printf '#!/bin/sh\ntest "$1" = --version && echo 1.24 || printf %s -lgpg-error' > gpg-error-config
+chmod +x gpg-error-config
+
+GPG_ERROR_CONFIG="$PWD/gpg-error-config" \
+LIBASSUAN_CONFIG="$PWD/libassuan-config" \
+CPPFLAGS="-D_GNU_SOURCE -I$PWD/secmem -include mymemory.h" \
+CFLAGS="$optcflags" \
+CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-pinentry-curses \
+  --with-libassuan-prefix="$butch_root_dir$butch_prefix" \
+  --disable-pinentry-gtk2
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

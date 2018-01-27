@@ -1,0 +1,41 @@
+#!/bin/awk -f
+# use: $0 <package> <section>
+# prints section of package
+BEGIN {
+	if (!ENVIRON["S"]) {
+		error("$S is not set. be sure to source config: . ./config")
+	}
+	if (ARGC!=3) {
+		error("this script prints the specified section of the specified package\n" "need package name as argv 1 and section name as argv 2!")
+	}
+	print_sec(ARGV[1], ARGV[2])
+}
+function eprint(msg) {
+	print msg > "/dev/stderr"
+}
+function error(msg) {
+	eprint("error: " msg)
+	exit 1
+}
+
+function print_sec(pkg, sec,		r, insect, pkgFile, isbuild) {
+	pkgFile=ENVIRON["S"] "/pkg/" pkg
+	insect=0
+	isbuild=(sec == "build")
+	while ((r = getline < pkgFile) == 1) {
+		if (insect && !isbuild && /^\[.*\]$/) break
+		if ($0 == "[" sec "]") {
+			insect=1
+			continue
+		}
+		if(insect) {
+			if(/^\s*$/ && !isbuild) continue
+			print $0
+		}
+	}
+	if (r == -1) {
+		error("unable to read from " pkgFile)
+	}
+	close(pkgFile)
+	exit 0
+}

@@ -1,0 +1,28 @@
+[mirrors]
+http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28.tar.gz
+
+[vars]
+filesize=1202833
+sha512=890731a6b8173f714155ce05eaf6d991b31632c8ab207fbae860968861a107552df26fcf85602df2e7f65502c7256c1b41735e1122485a3a07ddb580aa83b57f
+pkgver=2
+desc='library for reading and writing sound files'
+
+[deps]
+libflac
+libogg
+libvorbis
+
+[build]
+printf "all:\n\ttrue\n\ngenfiles:\n\ttrue\n\ninstall:\n\ttrue\n\n" > tests/Makefile.in
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > regtest/Makefile.in
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > examples/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make -j$MAKE_THREADS
+make V=1 DESTDIR="$butch_install_dir" install

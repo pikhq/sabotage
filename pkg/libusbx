@@ -1,0 +1,20 @@
+[vars]
+filesize=432611
+sha512=a03eafe1a102a6dd532bbe758878bd92548ed367c39909c6e8fde205c145b9581405011379fa5e031df53e208feb54d9f4886039fab6e261c8ca27ceec69b45d
+
+[mirrors]
+http://downloads.sourceforge.net/project/libusbx/releases/1.0.14/source/libusbx-1.0.14.tar.bz2
+http://heanet.dl.sourceforge.net/project/libusbx/releases/1.0.14/source/libusbx-1.0.14.tar.bz2
+http://surfnet.dl.sourceforge.net/project/libusbx/releases/1.0.14/source/libusbx-1.0.14.tar.bz2
+
+[deps.host]
+dynamic-toolchain
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+CPPFLAGS="-D_POSIX_SOURCE -D_BSD_SOURCE -DTIMESPEC_TO_TIMEVAL=" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make V=1 DESTDIR="$butch_install_dir" install

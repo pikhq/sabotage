@@ -1,0 +1,50 @@
+[mirrors]
+http://mupdf.com/downloads/archive/mupdf-1.11-source.tar.gz
+
+[vars]
+filesize=40156070
+sha512=501670f540e298a8126806ebbd9db8b29866f663b7bbf26c9ade1933e42f0c00ad410b9d93f3ddbfb3e45c38722869095de28d832fe3fb3703c55cc9a01dbf63
+pkgver=4
+desc='fast and relatively unbloated PDF viewer. used on embedded devices'
+
+[deps]
+musl
+zlib
+curl
+freetype
+jbig2dec
+libjpeg
+libxext
+libressl
+libxcursor
+libxinerama
+
+[deps.host]
+freetype
+zlib
+libressl
+jbig2dec
+
+[build]
+rm -rf thirdparty/curl thirdparty/freetype thirdparty/jpeg thirdparty/zlib thirdparty/jbig2dec
+PCS_SAVE="$PKG_CONFIG_SYSROOT_DIR"
+PCL_SAVE="$PKG_CONFIG_LIBDIR"
+PKG_CONFIG_SYSROOT_DIR=
+PKG_CONFIG_LIBDIR=
+# fontdump bin2hex cquote namedump
+for i in cmapdump hexdump; do
+	make verbose=yes CC=cc \
+	FREETYPE_CFLAGS=-I/usr/include/freetype2 \
+	FREETYPE_LIBS=-lfreetype \
+	OPENSSL_CFLAGS="-DHAVE_OPENSSL" \
+	OPENSSL_LIBS="-lssl -lcrypto" \
+	build=release build/release/scripts/"$i".exe
+done
+PKG_CONFIG_SYSROOT_DIR="$PCS_SAVE"
+PKG_CONFIG_LIBDIR="$PCL_SAVE"
+
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  make verbose=yes -j $MAKE_THREADS DESTDIR="$butch_install_dir" \
+  HAVE_GLFW=no \
+  prefix="$butch_prefix" build=release install

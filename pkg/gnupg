@@ -1,0 +1,25 @@
+[mirrors]
+https://gnupg.org/ftp/gcrypt/gnupg/gnupg-1.4.22.tar.bz2
+http://mirrors.dotsrc.org/gcrypt/gnupg/gnupg-1.4.22.tar.bz2
+http://mirror.tje.me.uk/pub/mirrors/ftp.gnupg.org/gnupg/gnupg-1.4.22.tar.bz2
+
+[vars]
+filesize=3746546
+sha512=c03acac0fa55761470bb085d78a44e2b99ebb187e8396cbb031a184b1e40bef2a40c91da07755d1a20610a3daa6aa1eefea2d12a0dbd5a79a45466166419c708
+pkgver=2
+
+[deps]
+readline
+libgcrypt
+
+[build]
+[ -n "$CROSS_COMPILE" ] && {
+  xconfflags="--host=$($CC -dumpmachine)"
+  sed -i 's/cross_compiling=maybe/cross_compiling=yes/' configure
+}
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags --disable-nls \
+  --disable-asm
+make -j$MAKE_THREADS AR="$CROSS_COMPILE"ar
+make DESTDIR="$butch_install_dir" install

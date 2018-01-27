@@ -1,0 +1,34 @@
+[mirrors]
+http://ftp.gnu.org/gnu/texinfo/texinfo-6.3.tar.xz
+
+[vars]
+filesize=4468048
+sha512=ef6c5878d9db497d7963bd9138418b30c39a5605c215bf2f4e8f1f083d93c3c99f8c459aa675f7da3b78da6189cb6bbf3cf19a2ee1d52e569de2f6ce82762bf4
+pkgver=2
+
+[deps.host]
+perl
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+if false ; then
+# needs evalution which host tool provides "install-info"
+cd "$butch_install_dir"/share/info
+rm -vf dir
+for f in *
+  do install-info $f dir 2>/dev/null
+done
+cd -
+fi

@@ -1,0 +1,24 @@
+[deps]
+git
+
+[build]
+
+dest="$S/build/"
+baseurl=git://github.com/rofl0r/
+repo=reponame
+
+if [ -d "$dest/${repo}-git" ] ; then
+	cd "$dest/${repo}-git"
+	git pull || exit 1
+else
+	mkdir -p "$dest"
+	cd "$dest"
+	git clone ${baseurl}${repo} ${repo}-git || exit 1
+	cd ${repo}-git
+fi
+
+echo prefix=/ > config.mak
+make clean
+make -j$MAKE_THREADS || exit 1
+make DESTDIR="$butch_install_dir" install || exit 1
+

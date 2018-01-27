@@ -1,0 +1,19 @@
+[vars]
+filesize=1436502
+sha512=e80ace766e145f6486e76da1a5a9819221b7f406745a02529b4ad220ef7f51ddd67f23d0d8b187bffc9725d9f9742ae5f3a0bb23ee5b2a61153332fb3e286b77
+desc='x86 and x86_64 assembler'
+
+[mirrors]
+http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,21 @@
+[mirrors]
+http://sourceforge.net/projects/polyml/files/polyml/5.5.2/polyml.5.5.2.tar.gz
+
+[vars]
+filesize=5599140
+sha512=248c2a38c4691898bc1243a041f4683bf227d9c8a98c6c3545af2a8a3249ed5ed96f33f90cb2dede8809b42f33c0557650147302cfe046a5fba965ccd93cbc5b
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make compiler
+make DESTDIR="$butch_install_dir" install

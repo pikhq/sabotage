@@ -1,0 +1,98 @@
+[deps]
+kernel-headers
+gnu-efi-libs
+mtools
+
+[deps.host]
+perl
+nasm
+
+[vars]
+filesize=9772883
+sha512=ca3da9d7f5f1c4ccc2eaa1cc33f5d2bb4afe2518dadeb863169ba2cce023c62112e5312181b047ce868a217e36f9b103622cf2e0e8559c3b7de35ad191388450
+pkgver=3
+
+[mirrors]
+ftp://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.02.tar.bz2
+http://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.02.tar.bz2
+http://www.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-6.02.tar.bz2
+http://ftp.wh2.tu-dresden.de/pub/mirrors/kernel.org/linux/utils/boot/syslinux/syslinux-6.02.tar.bz2
+http://ftp.hosteurope.de/mirror/ftp.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.02.tar.bz2
+http://ftp.uni-ulm.de/pub/mirrors/kernel.org/utils/boot/syslinux/6.xx/syslinux-6.02.tar.bz2
+
+[build]
+isx86=0
+case "$A" in
+  i[3-6]86) isx86=1 ;;
+  x86_64) isx86=1 ;;
+  x32) isx86=1 ;;
+esac
+
+[ "$isx86" = 1 ] || {
+    echo "ERROR: syslinux6 only supports the intel architecture"
+    exit 0
+}
+
+# We dont use sbin
+sed -i 's,/sbin,/bin,' syslinux.spec mk/syslinux.mk
+
+# Exclude windows stuff and mtools and others
+sed 's|INSTALLSUBDIRS = com32 utils dosutil|INSTALLSUBDIRS = com32 utils|g' -i Makefile
+sed '/DIAGDIR/d' -i Makefile
+
+# Throw Windooze stuff out
+sed 's|diag libinstaller dos win32 win64 dosutil txt|libinstaller txt|g' -i Makefile
+sed 's|win32/syslinux.exe win64/syslinux64.exe||g' -i Makefile
+sed 's|dosutil/\*.com dosutil/\*.sys||g' -i Makefile
+sed 's|dos/syslinux.com||g' -i Makefile
+sed 's|gpxe/gpxelinuxk*\.0||g' -i Makefile
+
+# We dont want the perl-based utils
+# They also pull in the isohybrid mbrs
+sed "s|utils/[a-z]*||g" -i Makefile
+
+# Skip parts of isolinux that we dont need
+sed "s,core/isolinux-debug.bin,," -i Makefile
+sed "s,mbr/\*.bin,mbr/\*mbr.bin mbr/isohdpfx.bin," -i Makefile
+
+# We dont need Memdisk
+sed "s,memdisk/memdisk,," -i Makefile
+sed "s,memdump/memdump.com,," -i Makefile
+
+# rarely used COM32 Modules
+sed "s,com32/modules/\*.c32,," -i Makefile
+sed "s,com32/hdt/\*.c32,," -i Makefile
+sed "s,com32/rosh/\*.c32,," -i Makefile
+sed "s,com32/gfxboot/\*.c32,," -i Makefile
+sed "s,com32/sysdump/\*.c32,," -i Makefile
+sed "s,com32/lua/src/\*.c32,," -i Makefile
+sed "s,com32/gpllib/\*.c32,," -i Makefile
+sed "s,com32/cmenu/libmenu/\*.c32,," -i Makefile
+
+# Exclude perl utils from being installed
+sed '/DIRS/ s/utils//' -i Makefile
+
+sed -i 's,#include <getkey.h>,#include "include/getkey.h",' com32/libutil/keyname.c
+sed -i 's,#include <libutil.h>,#include "include/libutil.h",' com32/libutil/keyname.c
+sed -i 's,#include "sha1.h",#include "include/sha1.h",' com32/libutil/sha1hash.c
+sed -i 's,#include <base64.h>,#include "include/base64.h",' com32/libutil/unbase64.c
+sed -i 's,#include <md5.h>,#include "include/md5.h",' com32/libutil/md5.c
+sed -i 's,#include <md5.h>,#include "include/md5.h",' com32/libutil/crypt-md5.c
+sed -i 's,#include <minmax.h>,#include "include/minmax.h",' com32/libutil/sha256crypt.c
+sed -i 's,#include "xcrypt.h",#include "include/xcrypt.h",' com32/libutil/sha256crypt.c
+sed -i 's,#include <minmax.h>,#include "include/minmax.h",' com32/libutil/sha512crypt.c
+sed -i 's,#include "xcrypt.h",#include "include/xcrypt.h",' com32/libutil/sha512crypt.c
+sed -i 's,#include <base64.h>,#include "include/base64.h",' com32/libutil/base64.c
+sed -i '/herror.*/d' utils/gethostip.c
+sed -ri 's,__uint([0-9]+)_t,uint\1_t,g' efi/wrapper.c
+sed -ri 's,__uint([0-9]+)_t,uint\1_t,g' efi/wrapper.h
+
+PREFIXED_PATHS="BINDIR='/bin' LIBDIR='/lib' DATADIR='/share' MANDIR='/man' INCDIR='/include'"
+
+make $PREFIXED_PATHS AUXDIR="$butch_prefix/lib/syslinux/bios" INSTALLROOT="$butch_install_dir" bios installer
+make $PREFIXED_PATHS AUXDIR="$butch_prefix/lib/syslinux/bios" INSTALLROOT="$butch_install_dir" -j1 bios install
+
+target=efi64
+case "$A" in i[3-6]86) target=efi32 ;; esac
+make $PREFIXED_PATHS AUXDIR="$butch_prefix/lib/syslinux" INSTALLROOT="$butch_install_dir" $target installer
+make $PREFIXED_PATHS AUXDIR="$butch_prefix/lib/syslinux" INSTALLROOT="$butch_install_dir" -j1 $target install

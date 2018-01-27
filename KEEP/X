@@ -1,0 +1,32 @@
+#!/bin/sh
+# hack, hack !
+
+usefbdev=false
+
+export DISPLAY=:0
+
+if $usefbdev ; then
+
+machine=qemu
+#machine=vbox
+
+if [ "$machine" = "qemu"  ]  ; then
+  keyb=event1
+  mouse=event2
+else
+  # settings for virtual box
+  keyb=event2
+  mouse=event3
+fi
+
+# for physical devices (non-emulator),
+# take a look at "cat /proc/bus/input/devices" to get hints
+# about the evdev ids. look for things like event1, event6, ...
+
+
+exec Xfbdev -retro  :0 -keybd evdev,,device=/dev/input/$keyb \
+  -mouse evdev,,device=/dev/input/$mouse
+
+else
+	exec Xorg -nolisten tcp
+fi

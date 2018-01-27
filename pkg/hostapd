@@ -1,0 +1,31 @@
+[mirrors]
+http://w1.fi/releases/hostapd-2.5.tar.gz
+
+[vars]
+filesize=1720783
+sha512=bbb0547c29f4925aff8639cae3291ed020c2a9d989dd267be831b2418880916d2ec69003e36ecc796c348476086397cca8f63c52633f91c11a9c2ab72e1c83c0
+
+[deps]
+zlib
+libressl
+libnl-tiny
+
+[build]
+patch -p0 < "$K"/wpa_supplicant25-libressl.patch
+patch -p0 < "$K"/wpa_supplicant25-eloop.patch
+cd hostapd
+cp defconfig .config
+
+CFLAGS="-D_GNU_SOURCE -I$butch_prefix/include/libnl-tiny \
+  -DLIBNL1_COMPAT \
+  -DCONFIG_LIBNL20 \
+  -D__int32_t=int32_t -D__int16_t=int16_t -D__uint8_t=uint8_t \
+  -D__uint32_t=uint32_t -D__uint16_t=uint16_t \
+  -include stdint.h $optcflags" \
+  LDFLAGS="-lz $optldflags" make -j$MAKE_THREADS CONFIG_LIBNL_TINY=y
+make BINDIR="$butch_prefix"/bin DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+install -Dm 644 hostapd.8 "$dest"/share/man/man8/hostapd.8
+install -Dm 644 hostapd_cli.1 "$dest"/share/man/man1/hostapd_cli.1
+install -Dm 644 hostapd.conf "$dest"/share/doc/hostapd.conf
+install -Dm 640 "$K"/hostapd.conf "$dest"/etc/hostapd.conf

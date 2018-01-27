@@ -1,0 +1,24 @@
+[mirrors]
+http://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
+
+[vars]
+filesize=1935069
+sha512=3bea3aabd2c99cc42d084a94fd6b0b5dbdb24cd6c7020271a6ee87a81a904b21b21756f590cb1afdf2e85fd1cb59e5c3651c5c4032e30204e7ea6f8801d1ea3b
+pkgver=3
+desc='low-level crypto library'
+
+[deps]
+gmp
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS=-D_GNU_SOURCE \
+CFLAGS="$optcflags -fPIC" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+sed -i 's@#.*$@@g' "$dest"/lib/pkgconfig/hogweed.pc

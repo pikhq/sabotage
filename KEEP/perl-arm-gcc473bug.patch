@@ -1,0 +1,11 @@
+--- perl-5.16.3.org/cpan/Time-Piece/Piece.xs
++++ perl-5.16.3/cpan/Time-Piece/Piece.xs
+@@ -955,7 +955,7 @@
+ 
+ MODULE = Time::Piece     PACKAGE = Time::Piece
+ 
+-PROTOTYPES: ENABLE
++PROTOTYPES: DISABLE
+ 
+ void
+ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)

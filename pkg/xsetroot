@@ -1,0 +1,24 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/app/xsetroot-1.1.1.tar.bz2
+
+[vars]
+filesize=119977
+sha512=04834a8ca658a4aabe03e62588353102e8019d424e25fab450d48e6fc4ac358df5bb98a850c82c61e2495faabfe54f3d92d9563e77c83ace7fd69c278edbbd64
+
+[deps]
+libx11
+libxau
+xbitmaps
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS=-D_GNU_SOURCE \
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

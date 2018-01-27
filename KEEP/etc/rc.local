@@ -1,0 +1,150 @@
+#!/bin/sh
+
+# put local stuff that you want to run on each start (with root powers) here.
+# for example your network config, or your keyboard layout in the linux terminal.
+# note that the below network config is only for wired networks.
+# edit /etc/wpa_connect_action.sh and /etc/wpa_supplicant.conf for wlan config.
+
+do_init_devices=false
+do_static_ip=false
+do_dhcp=false
+do_nat_router=false
+do_init_alsa=false
+do_kmap=false
+do_disable_overcommit=true
+do_protected_symlinks=false
+do_protected_hardlinks=true
+do_allow_user_ping=true
+do_disable_ipv6=false
+do_disable_ipv6_accept_ra=true
+do_cleanup_x11=true
+do_user_cpufreq=false
+
+if $do_allow_user_ping ; then
+	# give groups 1000 - MAX access.
+	# this excludes services and root, but root uses SOCK_RAW anyway.
+	echo "1000 2147483647" > /proc/sys/net/ipv4/ping_group_range
+fi
+
+if $do_init_devices ; then
+	# if mdev/eudev don't work as excepted, do it straight
+	chown root:audio /dev/snd/* && chmod 0660 /dev/snd/*
+	chown root:video /dev/fb0 && chmod 0660 /dev/fb0
+	chown root:tty /dev/tty && chmod 0666 /dev/tty
+	[ -e /dev/kvm ] && chown root:kvm /dev/kvm && chmod 0660 /dev/kvm
+	chmod og+r /dev/rtc0
+fi
+
+if $do_static_ip ; then
+
+	if=eth0
+	ip=192.168.0.2
+	nm=255.255.255.0
+	gw=192.168.0.1
+
+	ifconfig $if $ip netmask $nm
+	route add default gw $gw
+
+elif $do_dhcp ; then
+
+	if=eth0
+	dhclient $if
+fi
+
+if $do_nat_router ; then
+	wan=wlan0
+	lan=eth0
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	iptables --table nat --append POSTROUTING --out-interface $wan \
+	         -j MASQUERADE
+	iptables --append FORWARD --in-interface $lan -j ACCEPT
+fi
+
+if $do_init_alsa ; then
+	# use aplay -l to show available cards and device ids
+
+	alsa_card=0
+	alsa_device=0
+	alsactl init $alsa_card
+
+	# system settings of /etc/asound.conf can be overridden via ~/.asoundrc
+	[ -e /etc/asound.conf ] || \
+		printf "defaults.pcm.card %s\ndefaults.pcm.device %s\ndefaults.ctl.card %s\n" \
+		       "$alsa_card" "$alsa_device" "$alsa_card" > /etc/asound.conf
+	# in order to save your alsamixer settings permanently, do:
+	# alsactl --file /etc/asound.state store
+	[ -e /etc/asound.state ] && alsactl --file /etc/asound.state restore
+fi
+
+if $do_kmap ; then
+	# take your pick
+	#kmap=/share/kmap/be-latin1.kmap
+	#kmap=/share/kmap/br-abnt2.kmap
+	#kmap=/share/kmap/cf.kmap
+	#kmap=/share/kmap/croat.kmap
+	#kmap=/share/kmap/cz-lat2.kmap
+	#kmap=/share/kmap/de-latin1.kmap
+	#kmap=/share/kmap/de-latin1-nodeadkeys.kmap
+	#kmap=/share/kmap/de_CH-latin1.kmap
+	#kmap=/share/kmap/dk-latin1.kmap
+	#kmap=/share/kmap/dvorak-l.kmap
+	#kmap=/share/kmap/dvorak-r.kmap
+	#kmap=/share/kmap/dvorak.kmap
+	#kmap=/share/kmap/es.kmap
+	#kmap=/share/kmap/fi-latin1.kmap
+	#kmap=/share/kmap/fr-latin1.kmap
+	#kmap=/share/kmap/fr_CH-latin1.kmap
+	#kmap=/share/kmap/hu.kmap
+	#kmap=/share/kmap/is-latin1.kmap
+	#kmap=/share/kmap/it.kmap
+	#kmap=/share/kmap/jp106.kmap
+	#kmap=/share/kmap/nl2.kmap
+	#kmap=/share/kmap/no-latin1.kmap
+	#kmap=/share/kmap/pl2.kmap
+	#kmap=/share/kmap/pt-latin1.kmap
+	#kmap=/share/kmap/se-lat6.kmap
+	#kmap=/share/kmap/sg-latin1.kmap
+	#kmap=/share/kmap/slovene.kmap
+	#kmap=/share/kmap/tr_q-latin5.kmap
+	#kmap=/share/kmap/trq.kmap
+	#kmap=/share/kmap/uk.kmap
+	#kmap=/share/kmap/us-acentos.kmap
+	#kmap=/share/kmap/us.kmap
+	[ -n "$kmap" ] && loadkmap < "$kmap"
+fi
+
+# http://ewontfix.com/3
+if $do_disable_overcommit ; then
+	echo "2" > /proc/sys/vm/overcommit_memory
+fi
+
+# http://www.openwall.com/lists/oss-security/2013/03/13/10
+if $do_protected_symlinks ; then
+	echo "1" > /proc/sys/fs/protected_symlinks
+fi
+if $do_protected_hardlinks ; then
+	echo "1" > /proc/sys/fs/protected_hardlinks
+fi
+
+if $do_disable_ipv6 ; then
+	echo "1" > /proc/sys/net/ipv6/conf/all/disable_ipv6
+fi
+if $do_disable_ipv6_accept_ra ; then
+	# disable automatic processing of router advertisement.
+	# this can silently and unexpectedly add ipv6 routes behind one's back.
+	echo "0" > /proc/sys/net/ipv6/conf/all/accept_ra
+fi
+if $do_cleanup_x11 ; then
+	# auto-cleanup stale X11 lock
+	rm -f /tmp/.X0-lock
+fi
+if $do_user_cpufreq ; then
+	# add your user to group cpufreq
+	if ! cat /etc/group | cut -d ':' -f 1 | grep -x cpufreq >/dev/null ; then
+		addgroup -S cpufreq
+	fi
+	for i in /sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_governor /sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_setspeed ; do
+		chown root:cpufreq "$i"
+		chmod 664 "$i"
+	done
+fi

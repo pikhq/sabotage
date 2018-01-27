@@ -1,0 +1,31 @@
+[mirrors]
+http://ftp.gnu.org/gnu/screen/screen-4.6.2.tar.gz
+
+[vars]
+filesize=845210
+sha512=224bd16ad5ae501d1b8bb7d2ba9cc19e6a0743de5a5b320109c2f6bf3b1ca564cc7094ed9211be13733d9d769cde77d13fe236341d448cad0518038ab1e85c99
+pkgver=4
+desc='terminal multiplexer'
+
+[deps]
+
+[build]
+patch -p1 < "$K"/screen-configure.patch
+
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" \
+  --with-sys-screenrc="$butch_prefix"/etc/screenrc $xconfflags
+
+cat << EOF >> config.h
+#undef UTMPOK
+#undef LOGINDEFAULT
+#define LOGINDEFAULT 0
+#undef GETUTENT
+#undef UTHOST
+#undef BUGGYGETLOGIN
+#undef SOCKDIR
+EOF
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

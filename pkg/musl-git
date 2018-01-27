@@ -1,0 +1,35 @@
+[vars]
+no_unlink=1
+
+[deps.host]
+dynamic-toolchain
+git
+
+[build]
+dest="$S/build/"
+if [ -d "$dest/musl-git/.git" ] ; then
+	cd "$dest/musl-git"
+	git pull
+else
+	mkdir -p "$dest"
+	cd "$dest"
+	git clone git://git.musl-libc.org/musl musl-git
+	cd musl-git
+fi
+
+./configure --prefix=$butch_prefix --syslibdir=$butch_prefix/lib
+if [ "$A" = "powerpc" ] ; then
+cat << EOF >> config.mak
+LDFLAGS += -Wl,--secure-plt
+CFLAGS += -msecure-plt
+EOF
+fi
+
+# enable debug libc when DEBUGBUILD is set
+[ ! -z "$DEBUGBUILD" ] && echo "CFLAGS += -O0 -g3" >> config.mak
+[ ! -z "$DEBUGBUILD" ] && echo "CFLAGS_ALL_SHARED += -O0 -g3" >> config.mak
+
+make clean
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

@@ -1,0 +1,23 @@
+[mirrors]
+https://github.com/troglobit/redir/releases/download/v3.1/redir-3.1.tar.xz
+
+[vars]
+filesize=80068
+sha512=ac0d4cb09becc3ed40df74d338e7b48da3283618d52f4717f4e82496ff530b7df3a939f969715b87646d799369b36a77a4618ca2380b671959a6864c277149aa
+pkgver=2
+desc='port redirection/forwarding utility'
+uchkurl=https://github.com/troglobit/redir/releases
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib -static" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

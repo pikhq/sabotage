@@ -1,0 +1,19 @@
+[mirrors]
+http://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
+
+[vars]
+filesize=600622
+sha512=a3dae5e4a6b93b1f5bf7435e8ab114a9be57252e9efc5dd444947d7a2d031b0819f34bcaeb35f60b5629a01b1238d738735a64db8f672be9690d3c80094511a4
+pkgver=2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CFLAGS="-fPIC -D_GNU_SOURCE $optcflags" \
+  LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

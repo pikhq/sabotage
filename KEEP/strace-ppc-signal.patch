@@ -1,0 +1,12 @@
+--- strace-4.8.org/signal.c
++++ strace-4.8/signal.c
+@@ -59,7 +59,9 @@
+ #ifdef IA64
+ # include <asm/ptrace_offsets.h>
+ #endif
++#ifndef POWERPC
+ #include <asm/ptrace.h>
++#endif
+ 
+ #if defined(SPARC) || defined(SPARC64) || defined(MIPS)
+ typedef struct {

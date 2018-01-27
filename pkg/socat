@@ -1,0 +1,40 @@
+[mirrors]
+http://www.dest-unreach.org/socat/download/socat-1.7.3.2.tar.bz2
+
+[vars]
+filesize=493324
+sha512=9ed4911deb09c36955b62a2efbcdfdff0e9d963fa30110e32396e49133d395afd7e61a19ca6a1a23e6e98ded4f603bcbb68c8eb3da4ce870f1450b8b6f7dd293
+pkgver=2
+desc='swiss army knife of dealing with sockets, pipes and other byte streams'
+
+[deps]
+libressl
+
+[build]
+[ -n "$CROSS_COMPILE" ] &&
+  xconfflags="--host=$($CC -dumpmachine)"
+
+CFLAGS="-DNETDB_INTERNAL=-1 $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure --prefix="$butch_prefix" $xconfflags \
+            --bindir=/bin \
+            --sbindir=/bin \
+            --enable-help \
+            --disable-readline \
+            --disable-filan \
+
+#            --disable-sycls
+#            --disable-tun \
+#            --disable-udp \
+#            --disable-socks4 \
+#            --disable-socks4a \
+#            --disable-proxy \
+#            --disable-sctp \
+
+cat << EOF >> config.h
+#undef BUILD_DATE
+#define BUILD_DATE "unknown"
+EOF
+
+make PREFIX="$butch_prefix" -j$MAKE_THREADS all
+make PREFIX="$butch_prefix" DESTDIR="$butch_install_dir" install

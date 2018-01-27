@@ -1,0 +1,40 @@
+[deps]
+musl
+
+[deps.host]
+pkgconf
+
+[vars]
+filesize=785724
+sha512=1842e2dfc9315d9dd39acd4545d80fad45dcb419c9bfb4423453ca8727aa78d864fd48f43e68a696345b4c0ee2e9eb50b3eddd96d3eaf6ed3c5d48211831b8e4
+
+[mirrors]
+http://archive.apache.org/dist/apr/apr-1.4.6.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+sizeof_iovec=0
+for sz in 8 12 16 ; do
+	printf "#include <sys/socket.h>\ntypedef int foo[(sizeof(struct iovec)==$sz) * 2 -1];\n" > tmp.$$.c
+	if $CC -c tmp.$$.c ; then
+		sizeof_iovec=$sz
+		break
+	fi
+done
+[ $sizeof_iovec = 0 ] && { echo "ERROR: could not determine sizeof(struct iovec)" ; exit 1 ; }
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+CPPFLAGS="-include stdlib.h -include pwd.h -D_GNU_SOURCE -DSTDC_HEADERS" \
+  ./configure -C $xconfflags \
+  --prefix="$butch_prefix" --datadir="$butch_prefix"/share/apr \
+  apr_cv_accept4=yes ac_cv_func_inet_addr=yes ac_cv_func_inet_network=yes \
+  ac_cv_tcp_nodelay_inherited=yes ac_cv_o_nonblock_inherited=no \
+  ac_cv_file__dev_zero=yes apr_cv_process_shared_works=yes \
+  apr_cv_mutex_robust_shared=no apr_cv_tcp_nodelay_with_cork=yes \
+  ac_cv_sizeof_struct_iovec=$sizeof_iovec \
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+

@@ -1,0 +1,39 @@
+[mirrors]
+http://download.aircrack-ng.org/aircrack-ng-1.2-rc4.tar.gz
+
+[vars]
+filesize=4379880
+sha512=f1e1d465813a5f00fd8f8b287353033ea30b657a4c3a9fe81281ab2546d3238690f0659076bff53703fbc796ba40efb16115804d21f8516adca2c774fefea20c
+pkgver=2
+desc='cracking/monitoring/security assessment tool for wireless networks'
+
+[deps]
+libpcap
+libressl
+sqlite
+libnl-tiny
+zlib
+
+[deps.run]
+iw
+procps
+ethtool
+
+[build]
+# circumventing the utterly broken autocfg script introduced in
+# https://github.com/aircrack-ng/aircrack-ng/commit/37af2dfcccedf667e4a8747ee897ac9d9269b1e9
+cat << EOF > common.cfg
+PTHREAD=Y
+NEWSSE=false
+# get back besside-ng
+EXPERIMENTAL=TRUE
+EOF
+
+patch -p1 < "$K"/aircrack-ng-wep-ska.patch
+patch -p1 < "$K"/aircrack-ng-grep.patch
+patch -p1 < "$K"/aircrack-ng-modinfo.patch
+patch -p1 < "$K"/aircrack-ng-multi-cap.patch
+[ -n "$CROSS_COMPILE" ] && export CC="$CC -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib"
+make -j$MAKE_THREADS
+make prefix="$butch_prefix" DESTDIR="$butch_install_dir" install
+cp "$K"/aircrack-ng-frontend "$butch_install_dir""$butch_prefix"/bin

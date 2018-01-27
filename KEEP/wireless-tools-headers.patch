@@ -1,0 +1,32 @@
+--- wireless_tools.29.org/iwlib.h
++++ wireless_tools.29/iwlib.h
+@@ -51,7 +51,7 @@
+ #define __user
+ #endif
+ 
+-#include <linux/types.h>		/* for "caddr_t" et al		*/
++//#include <linux/types.h>		/* for "caddr_t" et al		*/
+ 
+ /* Glibc systems headers are supposedly less problematic than kernel ones */
+ #include <sys/socket.h>			/* for "struct sockaddr" et al	*/
+--- wireless_tools.29.org/wireless.21.h
++++ wireless_tools.29/wireless.21.h
+@@ -76,6 +76,18 @@
+ #include <linux/types.h>		/* for "caddr_t" et al		*/
+ #include <linux/socket.h>		/* for "struct sockaddr" et al	*/
+ #include <linux/if.h>			/* for IFNAMSIZ and co... */
++
++#else
++#include <stdint.h>
++#define __u8 uint8_t
++#define __u16 uint16_t
++#define __u32 uint32_t
++#define __s8 int8_t
++#define __s16 int16_t
++#define __s32 int32_t
++
++
++
+ #endif	/* __KERNEL__ */
+ 
+ /***************************** VERSION *****************************/

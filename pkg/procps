@@ -1,0 +1,31 @@
+[mirrors]
+http://downloads.sourceforge.net/project/procps-ng/Production/procps-ng-3.3.12.tar.xz
+
+[vars]
+filesize=845484
+sha512=ea816740ff72cc53d99b5d2e78a511b627ea5b295e0efff67605c56d1ab075abc6b0e2da3df4facbfe903fc9d679e892d351b6884a966d37c6f4bfd9141a924b
+desc='process monitoring command line utilities using information from /proc'
+uchkurl=http://ftp.de.debian.org/debian/pool/main/p/procps/
+
+[deps]
+curses
+
+[build]
+patch -p1 < "$K"/procps-ng-netbsd-curses.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+STRIP=true \
+CPPFLAGS="-D_GNU_SOURCE -DGLOB_TILDE=0 -DAF_INET6=10 -DAF_INET=2" \
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls \
+  --sbindir="$butch_prefix"/bin \
+  --with-libintl-prefix="$butch_root_dir""$butch_prefix" \
+  --with-libiconv-prefix="$butch_root_dir""$butch_prefix"
+
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

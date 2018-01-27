@@ -1,0 +1,17 @@
+[mirrors]
+http://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.77.tar.xz
+
+[vars]
+filesize=487244
+sha512=6ca98a71a8fdfd606e29c58b34dadfa63148c39f931570cca67a287e044d52c6ec2f8acbf5620ada3312e9db3a2fd63877188d829c070beaa730607e3309e768
+pkgver=2
+desc="provides DNS, DHCP, router advertisement and network boot services"
+service=dnsmasq
+serviceflags="--down --log"
+
+[deps]
+
+[build]
+make PREFIX="$butch_prefix" CFLAGS="$optcflags" LDFLAGS="$optldflags" -j$MAKE_THREADS
+make BINDIR="$butch_prefix"/bin PREFIX="$butch_prefix" DESTDIR="$butch_install_dir" install
+install -D -m 640 dnsmasq.conf.example "$butch_install_dir"/"$butch_prefix"/etc/dnsmasq.conf

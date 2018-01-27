@@ -1,0 +1,10 @@
+--- bridge-utils-1.5.org/libbridge/libbridge.h	2013-08-11 08:34:15.976000004 +0000
++++ bridge-utils-1.5/libbridge/libbridge.h	2013-08-11 08:34:39.495000004 +0000
+@@ -22,6 +22,7 @@
+ #include <sys/socket.h>
+ #include <linux/if.h>
+ #include <linux/if_bridge.h>
++#include <sys/time.h>
+ 
+ /* defined in net/if.h but that conflicts with linux/if.h... */
+ extern unsigned int if_nametoindex (const char *__ifname);

@@ -1,0 +1,28 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/atkmm/2.22/atkmm-2.22.6.tar.xz
+
+[vars]
+filesize=562892
+sha512=69d5b3b2131658d7ffd5be86bcb0a5966fe9446a7cae1138cb2849d5ccf64f58fc9cc16cc7cb2c5b883bb441966980c8acaa7566d23771f9334919ca27c28942
+desc='C++ bindings for the atk library'
+
+[deps]
+atk
+glibmm
+
+[deps.host]
+pkgconf
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+for i in doc ; do
+        printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

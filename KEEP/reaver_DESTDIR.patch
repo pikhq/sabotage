@@ -1,0 +1,18 @@
+--- reaver-1.4.org/src/Makefile.in
++++ reaver-1.4/src/Makefile.in
+@@ -84,11 +84,10 @@
+ globule.o:
+ 	$(CC) $(CFLAGS) globule.c -c 
+ 
+-install: cleanbin
+-	if [ ! -d $(CONFDIR) ]; then mkdir -p $(CONFDIR); fi
+-	if [ ! -e $(CONFDIR)/reaver.db ]; then cp reaver.db $(CONFDIR)/reaver.db && chmod -R a+rw $(CONFDIR); fi
+-	if [ -e wash ]; then cp wash @bindir@/wash; fi
+-	if [ -e reaver ]; then cp reaver @bindir@/reaver; fi
++install: wash reaver reaver.db
++	install -D -m 644 reaver.db $(DESTDIR)$(CONFDIR)/reaver.db
++	install -D -m 755 wash $(DESTDIR)$(exec_prefix)/bin/wash
++	install -D -m 755 reaver $(DESTDIR)$(exec_prefix)/bin/reaver
+ 
+ clean:
+ 	rm -f *~ *.o reaver wash

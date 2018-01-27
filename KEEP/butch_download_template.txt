@@ -1,0 +1,131 @@
+#!/bin/sh
+%BUTCH_CONFIG
+get_file_name() {
+printf "%s" "$1" | awk '{n=split($0,a,"/");print a[n];}'
+}
+get_file_size() {
+wc -c "$1" | cut -d " " -f 1
+}
+check_sha512() {
+[ $(sha512sum "$2"|cut -d " " -f 1) = "$1" ] && return 0
+return 1
+}
+fail() {
+	printf "ERROR: %s\n" "$1" >&2
+}
+
+butch_cache_dir="$C"
+
+if [ -z "$tarball" ] ; then
+for i in %BUTCH_MIRROR_URLS ; do
+	tarball=$(get_file_name "$i")
+	break
+done
+fi
+check_tarball_size() {
+	if [ -n "$filesize" ] && [ "$filesize" != $(get_file_size "$1") ] ; then
+		fail "FILESIZE MISMATCH"
+		return 22
+	fi
+	return 0
+}
+check_tarball() {
+	[ -e "$1" ] || return 1
+	if ! check_tarball_size "$1" ; then
+		return 22
+	fi
+	if [ -n "$sha512" ] && ! check_sha512 "$sha512" "$1" ; then
+		fail "SHA512 CHECKSUM MISMATCH"
+		return 11
+	fi
+	return 0
+}
+
+# check if tarball already exists
+if [ -e "$C"/"$tarball" ] ; then
+	check_tarball_size "$C"/"$tarball" && {
+		echo "tarball existing, passed size check. exiting."
+		exit 0
+	}
+	fail "tarball exists but size differs from recipe"
+	exit 99
+fi
+
+# try to download from SCP_MIRRORS list (newline-delimited)
+if test x != x"$SCP_MIRRORS" ; then
+(
+n=1
+IFS='
+'
+for m in $SCP_MIRRORS ; do
+	IFS=' '
+	cmd=$(printf "$m" "$tarball" "$C"/"$tarball")
+	$cmd </dev/null && check_tarball "$C"/"$tarball" && {
+		echo "successfully downloaded from SCP_MIRROR $n"
+		exit 0
+	}
+	n=$(($n + 1))
+IFS='
+'
+done
+exit 1
+)
+test $? = 0 && test -e "$C"/"$tarball" && exit 0
+fi
+
+# try regular ftp/http/https download using the package's mirrors section.
+retries=5
+tmp=/tmp/butchdl.$$
+rc=0
+append() {
+eval "$1=\"\${$1} \$2\""
+eval "$1=\${$1# }"
+}
+
+download() {
+	local url="$1"
+	local out="$2"
+	if [ "$USE_CURL" = 1 ] ; then
+		curl -c /dev/null -C - --retry $retries -k -L "$url" -o "$out"
+	else
+		WGET=wget
+		is_bb=false
+		$WGET --help 2>&1 | grep BusyBox > /dev/null && is_bb=true
+		if ! $is_bb && ! $WGET --help >/dev/null 2>&1 ; then
+			# appears it is GNU wget and it is broken, eventually
+			# through a libressl soname bump. fall back to busybox.
+			WGET="busybox wget"
+			is_bb=true
+		fi
+		if ! $is_bb ; then
+			append wgetflags "--tries=$retries"
+			append wgetflags --no-check-certificate
+		fi
+		$WGET $wgetflags -O "$out" -c "$url"
+	fi
+}
+
+cleanup() {
+	[ -e "$tmp" ] && { cat $tmp ; rm $tmp ; }
+}
+
+FALLBACK_MIRROR=http://tar.sabotage.tech
+FALLBACK=$FALLBACK_MIRROR/%BUTCH_PACKAGE_NAME/$tarball
+echo "in case the download process was killed, see $tmp for wget/curl output"
+
+for url in %BUTCH_MIRROR_URLS $FALLBACK ; do
+if ! download "$url" "$butch_cache_dir/$tarball".wip >$tmp 2>&1 ; then
+	rc=1
+	grep 404 < $tmp > /dev/null && { rc=44 ; fail "HTTP 404 FILE NOT FOUND" ; }
+	[ "$rc" = 1 ] && fail "UNKNOWN DL ERROR, SEE LOG"
+	cleanup
+else
+	mv "$butch_cache_dir"/"$tarball".wip \
+	   "$butch_cache_dir"/"$tarball"
+	check_tarball "$butch_cache_dir"/"$tarball"
+	rc=$?
+	break
+fi
+done
+cleanup
+exit $rc

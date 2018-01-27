@@ -1,0 +1,18 @@
+--- psmisc-22.19.org/src/pstree.c
++++ psmisc-22.19/src/pstree.c
+@@ -33,9 +33,13 @@
+ #include <getopt.h>
+ #include <pwd.h>
+ #include <dirent.h>
+-#include <curses.h>
+-#include <term.h>
+ #include <termios.h>
++#include <termcap.h>
++
++#define tigetstr(X) NULL
++#define OK 0
++#define setupterm(X, Y, Z) OK
++
+ #include <langinfo.h>
+ #include <assert.h>
+ #include <sys/types.h>

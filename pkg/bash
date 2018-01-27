@@ -1,0 +1,28 @@
+[mirrors]
+http://ftp.gnu.org/gnu/bash/bash-4.4.12.tar.gz
+
+[vars]
+filesize=9463431
+sha512=dee9d83319b0b8c0201c71d6b5f60c1eebfcec76d856a167a84a374d2296de7dcf4c4960515f888251bbf8feb0f8e1602f0061005346a0f48efb4297a2a87834
+pkgver=3
+desc="the bourne again shell. prerequisite to build lots of linux-centric sw."
+
+[deps]
+
+[build]
+# FIXME: bash has a ton of configure tests with broken defaults
+# for crosscompiling. breakage could for example be introduced by
+# "checking for offset of exit status... 0" (due to crosscompile)
+# on a native x86_64 run we get 8 (bash_cv_wexitstatus_offset)
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags" LDFLAGS="$optldflags -static" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --without-bash-malloc \
+  --disable-rpath --enable-history bash_cv_getenv_redef=no \
+  --enable-job-control bash_cv_sys_named_pipes=yes \
+  --disable-nls
+#  --with-installed-readline ac_cv_rl_version=5.0 \
+make -j$MAKE_THREADS READLINE_LIB=lib/readline/libreadline.a
+make DESTDIR="$butch_install_dir" install

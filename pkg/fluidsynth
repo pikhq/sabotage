@@ -1,0 +1,21 @@
+[mirrors]
+http://heanet.dl.sourceforge.net/project/fluidsynth/fluidsynth-1.1.6/fluidsynth-1.1.6.tar.bz2
+
+[vars]
+filesize=823783
+sha512=0ead8bf86c0edf6d98044eb16b52b85fac8bc3bdeb9c1478d0bceb4f5b38ca28218fcf2cd18cdd5608190dc70b7c39bde681765d01787bc84bc97c6ab3bbf946
+
+[deps]
+alsa-lib
+libsndfile
+glib
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

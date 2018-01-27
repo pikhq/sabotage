@@ -1,0 +1,80 @@
+--- termcap-1.3.1.org/Makefile.in	1995-08-17 00:54:29.000000000 +0000
++++ termcap-1.3.1/Makefile.in	2012-10-13 03:13:56.988000002 +0000
+@@ -24,8 +24,8 @@
+ AR = ar
+ RANLIB = @RANLIB@
+ 
+-INSTALL = @INSTALL@
+-INSTALL_DATA = @INSTALL_DATA@
++INSTALL = install -D
++INSTALL_DATA = $(INSTALL) -m 644
+ 
+ MAKEINFO = makeinfo
+ 
+@@ -42,12 +42,6 @@
+ # Directory in which to install termcap.h.
+ includedir = $(prefix)/include
+ 
+-# Directory in which to optionally also install termcap.h,
+-# so compilers besides gcc can find it by default.
+-# If it is empty or not defined, termcap.h will only be installed in
+-# includedir. 
+-oldincludedir = /usr/include
+-
+ # Directory in which to install the documentation info files.
+ infodir = $(prefix)/info
+ 
+@@ -72,13 +66,10 @@
+ 	$(CC) -c $(CPPFLAGS) $(DEFS) -I. -I$(srcdir) $(CFLAGS) $<
+ 
+ install: all installdirs @installdata@
+-	$(INSTALL_DATA) libtermcap.a $(libdir)/libtermcap.a
+-	-$(RANLIB) $(libdir)/libtermcap.a
+-	cd $(srcdir); $(INSTALL_DATA) termcap.h $(includedir)/termcap.h
+-	-cd $(srcdir); test -z "$(oldincludedir)" || \
+-	  $(INSTALL_DATA) termcap.h $(oldincludedir)/termcap.h
++	$(INSTALL_DATA) libtermcap.a $(DESTDIR)$(libdir)/libtermcap.a
++	cd $(srcdir); $(INSTALL_DATA) termcap.h $(DESTDIR)$(includedir)/termcap.h
+ 	cd $(srcdir); for f in termcap.info*; \
+-	do $(INSTALL_DATA) $$f $(infodir)/$$f; done
++	do $(INSTALL_DATA) $$f $(DESTDIR)$(infodir)/$$f; done
+ 
+ uninstall: @uninstalldata@
+ 	rm -f $(libdir)/libtermcap.a $(includedir)/termcap.h
+--- termcap-1.3.1.org/termcap.h	1995-07-26 18:09:50.000000000 +0000
++++ termcap-1.3.1/termcap.h	2012-10-13 03:17:18.366000002 +0000
+@@ -18,6 +18,9 @@
+ #ifndef _TERMCAP_H
+ #define _TERMCAP_H 1
+ 
++/* prevent ncurses headers from defining different prototypes */
++#define NCURSES_TERMCAP_H_incl
++
+ #if __STDC__
+ 
+ extern int tgetent (char *buffer, const char *termtype);
+--- termcap-1.3.1.org/tparam.c
++++ termcap-1.3.1/tparam.c
+@@ -17,21 +17,14 @@
+ Boston, MA 02111-1307, USA.  */
+ 
+ /* Emacs config.h may rename various library functions such as malloc.  */
+-#ifdef HAVE_CONFIG_H
+-#include <config.h>
+-#endif
+ 
+ #ifdef emacs
+ #include "lisp.h"		/* for xmalloc */
+ #else
+ 
+-#ifdef STDC_HEADERS
+ #include <stdlib.h>
+ #include <string.h>
+-#else
+-char *malloc ();
+-char *realloc ();
+-#endif
++#include <unistd.h>
+ 
+ /* Do this after the include, in case string.h prototypes bcopy.  */
+ #if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)

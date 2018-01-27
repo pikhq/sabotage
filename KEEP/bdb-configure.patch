@@ -1,0 +1,28 @@
+--- db-5.3.21.org/dist/configure	2012-09-29 19:57:08.668000002 +0000
++++ db-5.3.21/dist/configure	2012-09-29 20:10:28.304000001 +0000
+@@ -21387,7 +21387,7 @@
+ 	# x86_64/gcc: FreeBSD, NetBSD, BSD/OS, Linux
+ 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <stdlib.h>
+ int
+ main ()
+ {
+@@ -22458,7 +22458,7 @@
+ if test "$db_cv_atomic" = no; then
+ 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <stdlib.h>
+ int
+ main ()
+ {
+@@ -23433,6 +23433,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <sys/time.h>
++#include <time.h>
+ int
+ main ()
+ {

@@ -1,0 +1,26 @@
+[mirrors]
+http://downloads.sourceforge.net/project/timidity/TiMidity++/TiMidity++-2.14.0/TiMidity++-2.14.0.tar.bz2
+
+[vars]
+filesize=1611424
+sha512=274b2a700cd10c7034ffae50b989419f971c79eac71c8e20649e4138f9710be0505bd99379b23e772b5af5aa86a636e4070e522f43d06007ceacc25f61261c8a
+tardir=TiMidity++-2.14.0
+
+[deps]
+curses
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+sed -i 's@if test "x\$prefix" != xNONE -a@if false -a@' configure
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  lib_cv_va_copy=yes \
+  lib_cv___va_copy=no \
+  lib_cv_va_val_copy=no \
+  --enable-ncurses
+make CC=cc -C timidity calcnewt
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

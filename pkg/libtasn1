@@ -1,0 +1,24 @@
+[mirrors]
+http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.12.tar.gz
+
+[vars]
+filesize=1888450
+sha512=6c551670949881193e39122f72948e4999ff1ba377f9ee5963d0a4ad1b84256e4fe42e9f6d6a2aa9f7d4ef7acc0e5174fb5cc3df5298524cdeda92f4b8c104f7
+pkgver=3
+desc='ASN.1 library used by GnuTLS and others'
+
+[deps]
+musl
+
+[build]
+"$K"/gnulibfix gl
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+
+make V=1 -j$MAKE_THREADS WERROR_CFLAGS=
+make DESTDIR="$butch_install_dir" install

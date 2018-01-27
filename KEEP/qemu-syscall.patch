@@ -1,0 +1,28 @@
+--- qemu-1.3.0.org/linux-user/syscall.c	2012-12-06 17:56:51.185000003 +0000
++++ qemu-1.3.0/linux-user/syscall.c	2012-12-06 18:54:14.568000002 +0000
+@@ -39,6 +39,7 @@
+ #include <sys/resource.h>
+ #include <sys/mman.h>
+ #include <sys/swap.h>
++#include <sys/syscall.h>
+ #include <signal.h>
+ #include <sched.h>
+ #ifdef __ia64__
+@@ -552,7 +553,7 @@
+ #endif
+ #define __NR_sys_ppoll __NR_ppoll
+ _syscall5(int, sys_ppoll, struct pollfd *, fds, nfds_t, nfds,
+-          struct timespec *, timeout, const __sigset_t *, sigmask,
++          struct timespec *, timeout, const sigset_t *, sigmask,
+           size_t, sigsetsize)
+ #endif
+ 
+@@ -584,7 +585,7 @@
+ extern int flock(int, int);
+ extern int setfsuid(int);
+ extern int setfsgid(int);
+-extern int setgroups(int, gid_t *);
++extern int setgroups(size_t, const gid_t *);
+ 
+ /* ARM EABI and MIPS expect 64bit types aligned even on pairs or registers */
+ #ifdef TARGET_ARM

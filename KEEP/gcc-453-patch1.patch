@@ -1,0 +1,56 @@
+--- gcc-4.5.3/gcc/configure
++++ gcc-patched/gcc/configure
+@@ -5707,7 +5707,7 @@
+   *)
+ 
+ cat >>confdefs.h <<_ACEOF
+-#define int8_t $ac_cv_c_int8_t
++//#define int8_t $ac_cv_c_int8_t
+ _ACEOF
+ ;;
+ esac
+@@ -5849,7 +5849,7 @@
+        || ac_type='long int'
+ 
+ cat >>confdefs.h <<_ACEOF
+-#define intmax_t $ac_type
++//#define intmax_t $ac_type
+ _ACEOF
+ 
+ fi
+@@ -8527,7 +8527,7 @@
+ else
+ 
+ cat >>confdefs.h <<_ACEOF
+-#define ssize_t int
++//#define ssize_t int
+ _ACEOF
+ 
+ fi
+@@ -8538,7 +8538,7 @@
+ else
+ 
+ cat >>confdefs.h <<_ACEOF
+-#define caddr_t char *
++//#define caddr_t char *
+ _ACEOF
+ 
+ fi
+@@ -8699,7 +8699,7 @@
+ else
+ 
+ cat >>confdefs.h <<_ACEOF
+-#define pid_t int
++//#define pid_t int
+ _ACEOF
+ 
+ fi
+@@ -9820,7 +9820,7 @@
+ 
+ else
+ 
+-$as_echo "#define rlim_t long" >>confdefs.h
++$as_echo "//#define rlim_t long" >>confdefs.h
+ 
+ fi
+ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext

@@ -1,0 +1,22 @@
+[mirrors]
+https://github.com/bengardner/uncrustify/archive/uncrustify-0.61.tar.gz
+
+[vars]
+filesize=1149607
+sha512=9de150e625d73af1af0ebf513d2ebd57a36e2d3be2b88fb4eefc4622f7aa6e68832a7b771c39a84e7b1b4da5a685ab97ac4f8a083a9675f424d59bf2024026c7
+tardir=uncrustify-uncrustify-0.61
+
+[build]
+if [ -n "$CROSS_COMPILE" ] ; then
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir --with-protoc=protoc"
+  type protoc >/dev/null || { 
+    echo "error: need protoc installed on the host" ; exit 1 ;
+  }
+fi
+CXXFLAGS="-D_GNU_SOURCE $optcflags" \
+CFLAGS="-D_GNU_SOURCE -DSTDC_HEADERS $optcflags" \
+LDFLAGS="$optldflags" \
+ ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

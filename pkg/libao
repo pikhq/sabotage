@@ -1,0 +1,23 @@
+[mirrors]
+http://downloads.xiph.org/releases/ao/libao-1.2.0.tar.gz
+
+[vars]
+filesize=464596
+sha512=9456953826c188d67129ad78366bb86d6243499f2cd340d20d61366f7e40a33f3f8ab601c7f18ce9e24aa22f898093b482b2415b7e428c1486ef7e5ac27b3ee4
+
+[deps]
+alsa-lib
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-alsa
+cat config.status | grep 'HAVE_ALSA_TRUE.*#' && {
+echo "ALSA SUPPORT MISSING!"
+exit 1
+}
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

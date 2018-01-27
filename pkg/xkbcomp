@@ -1,0 +1,22 @@
+[mirrors]
+ftp://ftp.x.org/pub/individual/app/xkbcomp-1.2.1.tar.bz2
+http://ftp.x.org/pub/individual/app/xkbcomp-1.2.1.tar.bz2
+
+[vars]
+filesize=217437
+sha512=cdb6c643b4f1eac828e8da8be5e8293deab883de0318e337d356af14bbc6240c86359dc7982d2e1c4394f2919b253ebabf16a7b5d67187619c696ecdb8bcad27
+
+[deps]
+libx11
+libxkbfile
+libxdmcp
+libxau
+libxcb
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/')"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make LIBS="-lX11 -lxcb -lXau -lXdmcp" -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

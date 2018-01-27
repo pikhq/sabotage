@@ -1,0 +1,30 @@
+#!/bin/sh
+CONFDIR=/etc/h2o
+SRVDIR=/var/www
+CONF="$CONFDIR"/h2o.conf
+
+if ! grep -q '^www-data:' /etc/passwd ; then
+	busybox addgroup -S www-data
+	busybox adduser -h "$SRVDIR" -s /bin/nologin -S -D -H -G www-data www-data
+	if [ ! -d "$SRVDIR" ] ; then 
+		install -D -d -m 755 "$SRVDIR"
+		chown -R www-data "$SRVDIR"
+		chgrp -R www-data "$SRVDIR"
+	fi
+fi
+if [ ! -f "$CONF" ] ; then
+	mkdir -p "$CONFDIR"
+	cat << 'EOF' > "$CONF"
+user: www-data
+pid-file: /var/run/h2o.pid
+listen:
+  port: 80
+hosts:
+  "Default":
+    paths:
+      /:
+        file.dir: /var/www
+        file.dirlisting: ON
+EOF
+fi
+exec h2o -m master -c "$CONF" 2>&1

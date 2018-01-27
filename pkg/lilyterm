@@ -1,0 +1,24 @@
+[vars]
+filesize=328443
+sha512=52d105c9543b3ee27ea16026339b58d8b65643ae4f54f19f90f41681bd7902be237ef126edf9dc6a12a26373f7d69eb51b4849dbef07e28ef2043de02819a221
+desc="LilyTerm is a terminal emulator based off of libvte that aims to be fast and lightweight, Licensed under GPLv3."
+
+[mirrors]
+http://lilyterm.luna.com.tw/file/lilyterm-0.9.9.2.tar.gz
+
+[deps]
+vte2
+gtk+2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && {
+	sed -i 's@conf:@conf:\n\ttouch lilyterm.conf\n\nfoo:@' data/Makefile
+	echo "WARNING: lilyterm.conf needs to be generated on the target"
+	echo "by doing lilyterm -p > lilyterm.conf"
+}
+
+CFLAGS="$optcflags $optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

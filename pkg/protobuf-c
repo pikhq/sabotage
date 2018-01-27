@@ -1,0 +1,24 @@
+[deps]
+protobuf
+
+[mirrors]
+https://github.com/protobuf-c/protobuf-c/releases/download/v1.1.0/protobuf-c-1.1.0.tar.gz
+
+[vars]
+filesize=453852
+sha512=50e0a9df1152e468c1bda88f67836fbe88e1ad711b3e6517265cdf715d89c2e15e7fb48c46ad4e163c978e54c899712e7a6e5e9b8bf7145cfdbc04947e0dcb34
+
+[build]
+if [ -n "$CROSS_COMPILE" ] ; then
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir --with-protoc=protoc"
+  type protoc >/dev/null || { 
+    echo "error: need protoc installed on the host" ; exit 1 ;
+  }
+fi
+CXXFLAGS="-D_GNU_SOURCE $optcflags" \
+CFLAGS="-D_GNU_SOURCE -DSTDC_HEADERS $optcflags" \
+LDFLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+ ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,29 @@
+--- u-boot-2013.07.org/tools/mkimage.h
++++ u-boot-2013.07/tools/mkimage.h
+@@ -29,6 +29,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/stat.h>
++#include <sys/types.h> /* ulong */
+ #include <time.h>
+ #include <unistd.h>
+ #include <sha1.h>
+--- u-boot-2013.07.org/tools/proftool.c
++++ u-boot-2013.07/tools/proftool.c
+@@ -29,6 +29,7 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <sys/param.h>
++#include <sys/types.h> /* ulong */
+ 
+ #include <compiler.h>
+ #include <trace.h>
+@@ -533,7 +534,7 @@
+ 		}
+ 
+ 		printf("%16s-%-5d [01] %lu.%06lu: ", "uboot", 1,
+-		       time / 1000000, time % 1000000);
++		       time / 1000000ul, time % 1000000ul);
+ 
+ 		out_func(call->func, 0, " <- ");
+ 		out_func(call->caller, 1, "\n");

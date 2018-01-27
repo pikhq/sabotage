@@ -1,0 +1,70 @@
+diff -ru wpa_supplicant-2.3.org/wpa_supplicant/config.c wpa_supplicant-2.3/wpa_supplicant/config.c
+--- wpa_supplicant-2.3.org/wpa_supplicant/config.c	2014-11-26 12:20:05.504066398 +0100
++++ wpa_supplicant-2.3/wpa_supplicant/config.c	2014-11-26 12:33:53.742067707 +0100
+@@ -3806,6 +3806,7 @@
+ #define IPV4(f) #f, wpa_global_config_parse_ipv4, OFFSET(f), NULL, NULL
+ 
+ static const struct global_parse_data global_fields[] = {
++	{ STR(action_script), 0 },
+ #ifdef CONFIG_CTRL_IFACE
+ 	{ STR(ctrl_interface), 0 },
+ 	{ FUNC_NO_VAR(no_ctrl_interface), 0 },
+Only in wpa_supplicant-2.3/wpa_supplicant: config.d
+diff -ru wpa_supplicant-2.3.org/wpa_supplicant/config.h wpa_supplicant-2.3/wpa_supplicant/config.h
+--- wpa_supplicant-2.3.org/wpa_supplicant/config.h	2014-11-26 12:20:05.497066398 +0100
++++ wpa_supplicant-2.3/wpa_supplicant/config.h	2014-11-26 12:53:18.220069549 +0100
+@@ -329,6 +329,10 @@
+  * for each.
+  */
+ struct wpa_config {
++	/* action_script: a script that is executed on connect and disconnect
++	 * events. gets interface name, state, and bssid as command line args */
++	char * action_script;
++
+ 	/**
+ 	 * ssid - Head of the global network list
+ 	 *
+Binary files wpa_supplicant-2.3.org/wpa_supplicant/config.o and wpa_supplicant-2.3/wpa_supplicant/config.o differ
+diff -ru wpa_supplicant-2.3.org/wpa_supplicant/notify.c wpa_supplicant-2.3/wpa_supplicant/notify.c
+--- wpa_supplicant-2.3.org/wpa_supplicant/notify.c	2014-11-26 12:20:05.500066398 +0100
++++ wpa_supplicant-2.3/wpa_supplicant/notify.c	2014-11-26 12:54:49.356069693 +0100
+@@ -67,6 +67,27 @@
+ 	wpas_dbus_unregister_interface(wpa_s);
+ }
+ 
++#include <sys/wait.h>
++static void connect_notify(struct wpa_supplicant *wpa_s, int disconnected) {
++	if(disconnected) wpas_p2p_notif_disconnected(wpa_s);
++	else wpas_p2p_notif_connected(wpa_s);
++	if (wpa_s->conf->action_script) {
++		pid_t child;
++		if(!(child = fork())) {
++			execve(wpa_s->conf->action_script, (char* const[]) {
++				wpa_s->conf->action_script,
++				wpa_s->ifname,
++				disconnected ? "DISCONNECTED" : "CONNECTED",
++				wpa_s->current_ssid && wpa_s->current_ssid->ssid ?
++					wpa_ssid_txt(wpa_s->current_ssid->ssid, wpa_s->current_ssid->ssid_len)
++					: "",
++				0}, (char* const[]) {0});
++		} else {
++			int loc;
++			waitpid(child, &loc, 0);
++		}
++	}
++}
+ 
+ void wpas_notify_state_changed(struct wpa_supplicant *wpa_s,
+ 			       enum wpa_states new_state,
+@@ -80,9 +101,9 @@
+ 	wpas_dbus_signal_prop_changed(wpa_s, WPAS_DBUS_PROP_STATE);
+ 
+ 	if (new_state == WPA_COMPLETED)
+-		wpas_p2p_notif_connected(wpa_s);
++		connect_notify(wpa_s, 0);
+ 	else if (old_state >= WPA_ASSOCIATED && new_state < WPA_ASSOCIATED)
+-		wpas_p2p_notif_disconnected(wpa_s);
++		connect_notify(wpa_s, 1);
+ 
+ 	sme_state_changed(wpa_s);
+ 

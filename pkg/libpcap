@@ -1,0 +1,53 @@
+[mirrors]
+http://www.tcpdump.org/release/libpcap-1.8.1.tar.gz
+http://www.uk.tcpdump.org/release/libpcap-1.8.1.tar.gz
+http://tcpdump.cybermirror.org/release/libpcap-1.8.1.tar.gz
+
+[vars]
+filesize=739163
+sha512=bff5ff53fe53324f423e38eb4062c3fbb9125f86ca90d5e88aca9f0b3da72bc0acc6221c022b0f88cb3f000267580719119824c388da545c6f35117660cbb53b
+pkgver=2
+desc='library for capturing network and other packets'
+
+[deps]
+libnl-tiny
+musl
+
+[deps.host]
+flex
+bison
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') --with-pcap=linux"
+
+# package causes gcc breakage when lto is used
+if [ x$A = xmips ] ; then
+  optldflags=$(printf "%s" "$optldflags"|sed 's/-flto//g')
+  optcflags=$(printf "%s" "$optcflags"|sed 's/-flto//g')
+fi
+CFLAGS="-D_GNU_SOURCE -D_BSD_SOURCE -DIPPROTO_HOPOPTS=0 \
+-I$butch_root_dir$butch_prefix/include/libnl-tiny $optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" \
+  --disable-canusb \
+  ac_cv_type_u_int64_t=yes $xconfflags
+sed -i 's@-lnl-genl@-lnl-tiny@' Makefile
+make -j$MAKE_THREADS AR="$CROSS_COMPILE"ar RANLIB="$CROSS_COMPILE"ranlib
+make DESTDIR="$butch_install_dir" AR="$CROSS_COMPILE"ar \
+     RANLIB="$CROSS_COMPILE"ranlib install
+
+dest="$butch_install_dir""$butch_prefix"
+( cd "$dest"/share/man/man3
+for i in *.3pcap ; do
+nn=$(printf %s "$i"|sed 's,3pcap$,3,')
+if test -L "$i" ; then
+	t=$(readlink "$i")
+	nt=$(printf %s "$t"|sed 's,3pcap$,3,')
+	rm -f "$i"
+	ln -sf "$nt" "$nn"
+else
+	mv "$i" "$nn"
+fi
+done
+)

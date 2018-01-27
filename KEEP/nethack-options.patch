@@ -1,0 +1,167 @@
+--- a/include/config.h
++++ b/include/config.h
+@@ -169,8 +169,8 @@
+ 
+ #ifdef UNIX
+ /* path and file name extension for compression program */
+-#define COMPRESS "/usr/bin/compress"	/* Lempel-Ziv compression */
+-#define COMPRESS_EXTENSION ".Z"		/* compress's extension */
++#define COMPRESS "/bin/gzip"	/* Lempel-Ziv compression */
++#define COMPRESS_EXTENSION ".gz"		/* compress's extension */
+ /* An example of one alternative you might want to use: */
+ /* #define COMPRESS "/usr/local/bin/gzip" */	/* FSF gzip compression */
+ /* #define COMPRESS_EXTENSION ".gz" */		/* normal gzip extension */
+@@ -185,7 +185,7 @@
+  *	a tar-like file, thus making a neater installation.  See *conf.h
+  *	for detailed configuration.
+  */
+-/* #define DLB */	/* not supported on all platforms */
++#define DLB	/* not supported on all platforms */
+ 
+ /*
+  *	Defining INSURANCE slows down level changes, but allows games that
+@@ -204,7 +204,7 @@
+  * otherwise it will be the current directory.
+  */
+ # ifndef HACKDIR
+-#  define HACKDIR "/usr/games/lib/nethackdir"
++#  define HACKDIR "/lib/nethack"
+ # endif
+ 
+ /*
+@@ -349,7 +349,7 @@
+  */
+ 
+ /*#define GOLDOBJ */	/* Gold is kept on obj chains - Helge Hafting */
+-/*#define AUTOPICKUP_EXCEPTIONS */ /* exceptions to autopickup */
++#define AUTOPICKUP_EXCEPTIONS /* exceptions to autopickup */
+ 
+ /* End of Section 5 */
+ 
+--- a/include/unixconf.h
++++ b/include/unixconf.h
+@@ -37,7 +37,7 @@
+ #define NETWORK		/* if running on a networked system */
+ 			/* e.g. Suns sharing a playground through NFS */
+ /* #define SUNOS4 */	/* SunOS 4.x */
+-/* #define LINUX */	/* Another Unix clone */
++#define LINUX	/* Another Unix clone */
+ /* #define CYGWIN32 */	/* Unix on Win32 -- use with case sensitive defines */
+ /* #define GENIX */	/* Yet Another Unix Clone */
+ /* #define HISX */	/* Bull Unix for XPS Machines */
+@@ -132,7 +132,7 @@
+  * "extra output" method is used, but not all systems provide access to
+  * a fine-grained timer.
+  */
+-/* #define TIMED_DELAY */	/* usleep() */
++#define TIMED_DELAY	/* usleep() */
+ #endif
+ 
+ /*
+--- a/sys/unix/Makefile.src
++++ b/sys/unix/Makefile.src
+@@ -61,7 +61,7 @@
+ #	if you get setcgtty() warnings during execution, you are feeding gcc
+ #		a non-ANSI <sys/ioctl.h> -- either run fixincludes on it or use
+ #		-traditional in CFLAGS
+-# CC = gcc
++CC = gcc
+ #
+ #	For Bull DPX/2 systems at B.O.S. 2.0 or higher use the following:
+ #
+@@ -124,7 +124,7 @@
+ 
+ # flags for Linux
+ #   compile normally
+-# CFLAGS = -O2 -fomit-frame-pointer -I../include
++CFLAGS = -O2 -fomit-frame-pointer -I../include
+ # LFLAGS = -L/usr/X11R6/lib
+ #   OR compile backwards compatible a.out format
+ # CFLAGS = -O2 -b i486-linuxaout -fomit-frame-pointer -I../include
+@@ -230,8 +230,8 @@
+ # WINTTYLIB = -ltermcap
+ # WINTTYLIB = -lcurses
+ # WINTTYLIB = -lcurses16
+-# WINTTYLIB = -lncurses
+-WINTTYLIB = -ltermlib
++WINTTYLIB = -lcurses -lterminfo
++# WINTTYLIB = -ltermlib
+ #
+ # libraries for X11
+ # If USE_XPM is defined in config.h, you will also need -lXpm here.
+--- a/sys/unix/Makefile.top
++++ b/sys/unix/Makefile.top
+@@ -14,11 +14,11 @@
+ # MAKE = make
+ 
+ # make NetHack
+-PREFIX	 = /usr
++PREFIX   = /
+ GAME     = nethack
+ # GAME     = nethack.prg
+-GAMEUID  = games
+-GAMEGRP  = bin
++GAMEUID  = root
++GAMEGRP  = root
+ 
+ # Permissions - some places use setgid instead of setuid, for instance
+ # See also the option "SECURE" in include/config.h
+@@ -35,9 +35,9 @@
+ # therefore there should not be anything in GAMEDIR that you want to keep
+ # (if there is, you'll have to do the installation by hand or modify the
+ # instructions)
+-GAMEDIR  = $(PREFIX)/games/lib/$(GAME)dir
++GAMEDIR  = $(PREFIX)/lib/$(GAME)dir
+ VARDIR  = $(GAMEDIR)
+-SHELLDIR = $(PREFIX)/games
++SHELLDIR = $(PREFIX)/bin
+ 
+ # per discussion in Install.X11 and Install.Qt
+ VARDATND = 
+--- a/sys/unix/Makefile.utl
++++ b/sys/unix/Makefile.utl
+@@ -15,7 +15,7 @@
+ 
+ # if you are using gcc as your compiler,
+ #	uncomment the CC definition below if it's not in your environment
+-# CC = gcc
++CC = gcc
+ #
+ #	For Bull DPX/2 systems at B.O.S. 2.0 or higher use the following:
+ #
+@@ -72,7 +72,7 @@
+ 
+ # flags for Linux
+ #   compile normally
+-# CFLAGS = -O2 -fomit-frame-pointer -I../include
++CFLAGS = -O2 -fomit-frame-pointer -I../include
+ # LFLAGS = -L/usr/X11R6/lib
+ #   OR compile backwards compatible a.out format
+ # CFLAGS = -O2 -b i486-linuxaout -fomit-frame-pointer -I../include
+@@ -101,11 +101,11 @@
+ 
+ # yacc/lex programs to use to generate *_comp.h, *_lex.c, and *_yacc.c.
+ # if, instead of yacc/lex you have bison/flex, comment/uncomment the following.
+-YACC     = yacc
+-LEX      = lex
+-# YACC     = bison -y
++# YACC     = yacc
++# LEX      = lex
++YACC     = bison -y
+ # YACC     = byacc
+-# LEX      = flex
++LEX      = flex
+  
+ # these are the names of the output files from YACC/LEX. Under MS-DOS
+ # and similar systems, they may differ
+--- a/sys/unix/nethack.sh
++++ b/sys/unix/nethack.sh
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ #	SCCS Id: @(#)nethack.sh	3.4	1990/02/26
+ 
+-HACKDIR=/usr/games/lib/nethackdir
++HACKDIR=/lib/nethack
+ export HACKDIR
+ HACK=$HACKDIR/nethack
+ MAXNROFPLAYERS=4

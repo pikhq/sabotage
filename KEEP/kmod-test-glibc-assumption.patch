@@ -1,0 +1,29 @@
+check if __GLIBC__ is defined before using _FILE_OFFSET_BITS
+
+_FILE_OFFSET_BITS is a glibc internal macro.
+musl provides 64bit off_t by default, but
+defines stat64 etc as macros to make glibc-centric
+programs happy. however the expansion causes
+problems with the hack used here to work around
+glibc's 32bit past...
+
+--- kmod-15.org/testsuite/path.c	2013-08-26 16:03:22.239000003 +0000
++++ kmod-15/testsuite/path.c	2013-08-26 16:11:36.939000003 +0000
+@@ -185,7 +185,7 @@
+ WRAP_2ARGS(int, -1, access, int);
+ WRAP_2ARGS(int, -1, stat, struct stat*);
+ WRAP_2ARGS(int, -1, lstat, struct stat*);
+-#ifndef _FILE_OFFSET_BITS
++#if defined(__GLIBC__) && !defined(_FILE_OFFSET_BITS)
+ WRAP_2ARGS(int, -1, stat64, struct stat64*);
+ WRAP_2ARGS(int, -1, lstat64, struct stat64*);
+ WRAP_OPEN(64);
+@@ -196,7 +196,7 @@
+ #ifdef HAVE___XSTAT
+ WRAP_VERSTAT(__x,);
+ WRAP_VERSTAT(__lx,);
+-#ifndef _FILE_OFFSET_BITS
++#if defined(__GLIBC__) && !defined(_FILE_OFFSET_BITS)
+ WRAP_VERSTAT(__x,64);
+ WRAP_VERSTAT(__lx,64);
+ #endif

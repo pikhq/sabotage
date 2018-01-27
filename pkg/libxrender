@@ -1,0 +1,19 @@
+[deps]
+renderproto
+libx11
+
+[vars]
+filesize=306121
+sha512=111a0ec4e19932a50da4914d9112b0a16c1d9c800e2b8398ddaf9ed70dae1a4eb75860282ca62d023e78957bbc3f015cb80d91ba76a24595df9f8a2b7e055b58
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libXrender-0.9.8.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags \
+  ac_cv_func__XEatDataWords=yes
+make V=1 DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

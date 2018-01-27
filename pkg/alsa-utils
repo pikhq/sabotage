@@ -1,0 +1,31 @@
+[mirrors]
+ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.1.5.tar.bz2
+http://gentoo.netnitco.net/distfiles/alsa-utils-1.1.5.tar.bz2
+http://alsa.cybermirror.org/utils/alsa-utils-1.1.5.tar.bz2
+http://distfiles.lesslinux.org/alsa-utils-1.1.5.tar.bz2
+http://distfiles.exherbo.org/distfiles/alsa-utils-1.1.5.tar.bz2
+
+[vars]
+filesize=1202691
+sha512=102e9ed34b89219dbad243ad5f61ca65fb8101502566c02f40d4e69abb45baa7a60f24440de1417e0f0e7f55b28db53d365d53a59af11f1ca816e2aa5907153d
+pkgver=4
+
+[deps]
+alsa-lib
+curses
+
+[build]
+cp -f "$K"/config.sub .
+
+patch -p1 < "$K"/alsa-utils_mixer_widget.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+LDFLAGS="$optldflags" \
+CFLAGS="-D_GNU_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -D_LARGEFILE64_SOURCE $optcflags" \
+  ./configure -C \
+  --prefix="$butch_prefix" \
+  --disable-xmlto --disable-alsatest --disable-nls $xconfflags
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,28 @@
+--- lxdm-0.4.1.org/src/lxdm.c
++++ lxdm-0.4.1/src/lxdm.c
+@@ -52,7 +52,6 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ 
+-#include <execinfo.h>
+ 
+ #ifdef HAVE_UTMPX_H
+ #include <utmpx.h>
+@@ -1578,7 +1577,7 @@
+ 
+ static void log_sigsegv(void)
+ {
+-	void *array[40];
++/*	void *array[40];
+ 	size_t size;
+ 	char **bt_strs;
+ 	size_t i;
+@@ -1589,7 +1588,7 @@
+ 	for (i=0; i<size; i++)
+ 	    fprintf(stderr, "%s\n", bt_strs[i]);
+ 
+-	free(bt_strs);
++	free(bt_strs); */
+ }
+ 
+ static void sigsegv_handler(int sig)

@@ -1,0 +1,43 @@
+[mirrors]
+http://download.netsurf-browser.org/netsurf/releases/source-full/netsurf-all-3.7.tar.gz
+
+[vars]
+filesize=8281249
+sha512=569c5a1bcce35bd69d3679ff5d7edd086238882ad24a9bcbdb51fccc2a950de45946f840aa38afb339c4c290c3070b4d6fe08eb6c912e9403489415beb3d6a91
+pkgver=3
+
+[deps]
+libpng
+curl
+libxml2
+cairo
+gtk+2
+libglade
+libmng
+liblcms
+
+[deps.host]
+perl
+perl5-HTML-Parser
+flex
+gperf
+
+[build]
+# FIXME: netsurfs Makefile suppresses parallel builds
+CFLAGS="-I$butch_prefix/include/cairo/" NETSURF_USE_BMP=NO \
+ make Q= -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/share/applications
+cat << EOF > "$dest"/share/applications/netsurf.desktop
+[Desktop Entry]
+Name=Netsurf
+Comment=Web Browser
+Exec=netsurf-gtk
+Icon=netsurf-gtk
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
+Terminal=false
+Type=Application
+Categories=GTK;Network;WebBrowser;
+EOF

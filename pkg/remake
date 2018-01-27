@@ -1,0 +1,26 @@
+[mirrors]
+http://downloads.sourceforge.net/project/bashdb/remake/3.82+dbg-0.9/remake-3.82+dbg0.9.tar.bz2
+
+[vars]
+filesize=1152677
+sha512=94682e9d0317088456dac683d67be320fe10bb06a3384969fafefe091558b215105ba3c96a7c1d4e0d970ea2dc5c4f535a704256fe7a4eaa87bec11d78d074cf
+desc='fork of GNU make with integrated debugger'
+
+[deps]
+kernel-headers
+
+[build]
+cp -f "$K"/config.sub config/
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+#patch -p1 < "$K"/make-3.82-upstream_fixes-3.patch
+CC="$CC -static" \
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags --disable-nls
+# __BEOS__ to use a shipped ar.h
+make -j$MAKE_THREADS CFLAGS=-D__BEOS__
+make DESTDIR="$butch_install_dir" install

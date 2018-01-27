@@ -1,0 +1,30 @@
+[mirrors]
+ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.8.1.tar.bz2
+http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.8.1.tar.bz2
+http://mirrors.dotsrc.org/gcrypt/libgcrypt/libgcrypt-1.8.1.tar.bz2
+http://dbg.download.sourcemage.org/mirror/libgcrypt-1.8.1.tar.bz2
+
+[vars]
+filesize=2967344
+sha512=27c9d2fd9cba5afca71d421c9299d6942463975fae0bd10d4ff42cda2d7ea213e6b73c071a40fcf23ff52a93394cc7505ab332f8a4a3321826460e471eda5b4e
+pkgver=7
+desc='general purpose crypto library based on the code from GnuPG'
+
+[deps]
+libgpg-error
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+printf '#!/bin/sh\n[ "$1" = --version ] && echo 1.27 || echo -lgpg-error\n' \
+  > gpg-error-config
+chmod +x gpg-error-config
+export PATH="$PWD:$PATH"
+
+CPPFLAGS=-D_GNU_SOURCE  CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-asm $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

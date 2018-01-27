@@ -1,0 +1,20 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libXft-2.3.2.tar.bz2
+
+[vars]
+filesize=335495
+sha512=eb2e0c46b4434198690a3ca2b613df14ad599c860b47d10a1e8efe3b4e812a78460f9f414eaf89db21d605613a4e18324dcb8a22928609c6bc15178330a05398
+
+[deps]
+fontconfig
+libxrender
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

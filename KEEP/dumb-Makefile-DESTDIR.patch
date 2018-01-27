@@ -1,0 +1,15 @@
+--- dumb-0.9.3.org/Makefile.rdy
++++ dumb-0.9.3/Makefile.rdy
+@@ -80,9 +80,9 @@
+ DEFAULT_PREFIX := /usr/local
+ endif
+ export DEFAULT_PREFIX
+-INCLUDE_INSTALL_PATH := $(PREFIX)/include
+-LIB_INSTALL_PATH := $(PREFIX)/lib
+-BIN_INSTALL_PATH := $(PREFIX)/bin
++INCLUDE_INSTALL_PATH := $(DESTDIR)$(PREFIX)/include
++LIB_INSTALL_PATH := $(DESTDIR)$(PREFIX)/lib
++BIN_INSTALL_PATH := $(DESTDIR)$(PREFIX)/bin
+ 
+ endif
+ 

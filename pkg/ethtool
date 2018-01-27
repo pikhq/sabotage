@@ -1,0 +1,19 @@
+[mirrors]
+http://cdn.kernel.org/pub/software/network/ethtool/ethtool-4.13.tar.xz
+
+[vars]
+filesize=217472
+sha512=d0f881b88379b959cd34949c924b0e4d4fb1af0873192cdf8ec9cc2d2d677a4de13021efabb0a1aea1932ef38a6952d9f3eb040c478a9af770054a6170777789
+pkgver=5
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

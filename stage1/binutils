@@ -1,5 +1,0 @@
-tarxf http://ftp.gnu.org/gnu/binutils/ binutils-2.21 .tar.bz2
-./configure --prefix=/ --disable-nls --disable-shared
-echo "#define __pid_t int" >include/features.h
-make tooldir=$R
-make tooldir=$R prefix=$R install

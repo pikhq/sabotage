@@ -1,0 +1,12 @@
+--- strace-4.8.org/syscall.c
++++ strace-4.8/syscall.c
+@@ -72,7 +72,9 @@
+ # include <elf.h>
+ #endif
+ 
++#ifndef POWERPC
+ #include <asm/ptrace.h>
++#endif
+ 
+ #ifndef ERESTARTSYS
+ # define ERESTARTSYS	512

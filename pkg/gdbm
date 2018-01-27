@@ -1,0 +1,20 @@
+[mirrors]
+http://mirror.switch.ch/ftp/mirror/gnu/gdbm/gdbm-1.13.tar.gz
+
+[vars]
+filesize=891987
+sha512=fdb777f5b415b0578ea46b4a6fc70151a04a3568e2f2c8c0219ccad8c0d34abb773d80d5d7a06462ad1a3d6c1f3b5b7ab25f9de4f43ccf05c58db05f9a2906ad
+pkgver=2
+desc='gnu dbm key/value database library'
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+CPPFLAGS=-D_GNU_SOURCE \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-nls
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

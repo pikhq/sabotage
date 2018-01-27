@@ -1,0 +1,19 @@
+[deps]
+libsm
+libice
+libx11
+
+[vars]
+filesize=762331
+sha512=57721def16bf29e05deb746566400d71cf0cd5bf9b8b7ebed19abb7c6804e14073060b6cf94409903aa464d27acca2e91f55654b2d4770677b2b4b4dc78fd423
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libXt-1.1.4.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

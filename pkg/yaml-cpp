@@ -1,0 +1,18 @@
+[mirrors]
+http://yaml-cpp.googlecode.com/files/yaml-cpp-0.5.1.tar.gz
+
+[vars]
+filesize=118244
+sha512=3c6928684d603815c016d663af36be94507f2cccf167d6d8d7cd7dea3ea5f73ec88d62952a2b5d11796e40132857afcbbacd9eafd688f2dc11d0c339caf2e013
+
+[deps]
+boost
+
+[deps.host]
+cmake
+
+[build]
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  cmake -DCMAKE_INSTALL_PREFIX="$butch_prefix" .
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

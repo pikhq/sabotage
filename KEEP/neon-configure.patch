@@ -1,0 +1,122 @@
+--- neon-0.29.6-org/configure	2012-04-26 00:01:58.358000199 +0000
++++ neon-0.29.6-patched/configure	2012-04-26 00:44:04.771000199 +0000
+@@ -1770,25 +1770,8 @@
+   return 0;
+ }
+ _ACEOF
+-if ac_fn_c_try_compile "$LINENO"; then :
+-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+-/* end confdefs.h.  */
+-$4
+-int
+-main ()
+-{
+-if (sizeof (($2)))
+-	    return 0;
+-  ;
+-  return 0;
+-}
+-_ACEOF
+-if ac_fn_c_try_compile "$LINENO"; then :
+-
+-else
+-  eval "$3=yes"
+-fi
+-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++if ac_fn_c_try_compile "$LINENO"; then
++eval "$3=yes"
+ fi
+ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+@@ -5447,11 +5430,11 @@
+ 
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <sys/socket.h>
+ int
+ main ()
+ {
+-socket();
++socket(0,0,0);
+   ;
+   return 0;
+ }
+@@ -5466,13 +5449,13 @@
+     # The w32api libraries link using the stdcall calling convention.
+     case ${lib}-${ne_cv_os_uname} in
+     ws2_32-MINGW*) ne__code="__stdcall socket();" ;;
+-    *) ne__code="socket();" ;;
++    *) ne__code="socket(0,0,0);" ;;
+     esac
+ 
+     LIBS="$ne_sl_save_LIBS -l$lib $NEON_LIBS"
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <sys/socket.h>
+ int
+ main ()
+ {
+@@ -5519,11 +5502,12 @@
+ 
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <sys/socket.h>
++#include <netdb.h>
+ int
+ main ()
+ {
+-getaddrinfo();
++getaddrinfo(0,0,0,0);
+   ;
+   return 0;
+ }
+@@ -5538,13 +5522,14 @@
+     # The w32api libraries link using the stdcall calling convention.
+     case ${lib}-${ne_cv_os_uname} in
+     ws2_32-MINGW*) ne__code="__stdcall getaddrinfo();" ;;
+-    *) ne__code="getaddrinfo();" ;;
++    *) ne__code="getaddrinfo(0,0,0,0);" ;;
+     esac
+ 
+     LIBS="$ne_sl_save_LIBS -l$lib $NEON_LIBS"
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <sys/socket.h>
++#include <netdb.h>
+ int
+ main ()
+ {
+@@ -5702,11 +5687,11 @@
+ 
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <netdb.h>
+ int
+ main ()
+ {
+-gethostbyname();
++gethostbyname(0, 0, 0);
+   ;
+   return 0;
+ }
+@@ -5721,13 +5706,13 @@
+     # The w32api libraries link using the stdcall calling convention.
+     case ${lib}-${ne_cv_os_uname} in
+     ws2_32-MINGW*) ne__code="__stdcall gethostbyname();" ;;
+-    *) ne__code="gethostbyname();" ;;
++    *) ne__code="gethostbyname(0,0,0);" ;;
+     esac
+ 
+     LIBS="$ne_sl_save_LIBS -l$lib $NEON_LIBS"
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <netdb.h>
+ int
+ main ()
+ {

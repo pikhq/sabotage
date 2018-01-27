@@ -1,0 +1,43 @@
+[mirrors]
+http://mdocml.bsd.lv/snapshots/mandoc-1.14.3.tar.gz
+
+[vars]
+filesize=617202
+sha512=cd638fbacb068fcd6191f2a4e941effc010e3ebf06a3e32847b892c2e561771d03d5bca8fbdf8434d6491f4b68df3f443e2568b79193b7342044fba476fcd30b
+pkgver=3
+desc="manpage viewer. recommended to use instead of sabotage's minimal man prog"
+
+[deps]
+
+[build]
+sed -i 's@pager = "/usr/bin/more -s"@pager = "/bin/less -s"@' main.c
+
+cat << EOF > configure.local
+PREFIX=$butch_prefix
+MANDIR="$butch_prefix"/share/man
+LIBDIR="$butch_prefix"/lib
+CFLAGS="$optcflags"
+BUILD_DB=0
+HAVE_DIRENT_NAMLEN=0
+HAVE_FGETLN=1
+HAVE_FTS=0
+HAVE_GETSUBOPT=1
+HAVE_MMAP=1
+HAVE_STRCASESTR=1
+HAVE_STRLCAT=1
+HAVE_STRLCPY=1
+HAVE_STRPTIME=1
+HAVE_STRSEP=1
+HAVE_WCHAR=1
+EOF
+
+./configure -C --disable-nls $xconfflags
+
+make V=1 -j$MAKE_THREADS LDFLAGS="$optldflags"
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+rm "$dest"/bin/man
+chmod 0755 "$dest"/bin/mandoc
+chmod 0755 "$dest"/bin/demandoc
+ln -sf mandoc "$dest"/bin/man

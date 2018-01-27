@@ -1,0 +1,20 @@
+[vars]
+filesize=139923
+sha512=7a6da239b2f166c6283090c219889e998be9332ee1e8eb4d84bbdf0cb58125a3773fe7ee97774d86f2cd5385dc49636a797c7b9c25c6c8bbe24b898329f97220
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/app/mkfontscale-1.1.1.tar.bz2
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

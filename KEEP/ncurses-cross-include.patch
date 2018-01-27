@@ -1,0 +1,20 @@
+--- ncurses-5.9.org/configure
++++ ncurses-5.9/configure
+@@ -18596,17 +18596,6 @@
+ if test "$srcdir" != "."; then
+ 	CPPFLAGS="$CPPFLAGS -I\${srcdir}/../include"
+ fi
+-if test "$GCC" != yes; then
+-	CPPFLAGS="$CPPFLAGS -I\${includedir}"
+-elif test "$includedir" != "/usr/include"; then
+-	if test "$includedir" = '${prefix}/include' ; then
+-		if test $prefix != /usr ; then
+-			CPPFLAGS="$CPPFLAGS -I\${includedir}"
+-		fi
+-	else
+-		CPPFLAGS="$CPPFLAGS -I\${includedir}"
+-	fi
+-fi
+ 
+ ACPPFLAGS="-I. -I../include -I../../include $ACPPFLAGS"
+ if test "$srcdir" != "."; then

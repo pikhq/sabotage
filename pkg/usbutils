@@ -1,0 +1,29 @@
+[mirrors]
+http://ftp.be.debian.org/pub/linux/utils/usb/usbutils/usbutils-009.tar.xz
+ftp://www.kernel.org/pub/linux/utils/usb/usbutils/usbutils-009.tar.xz
+http://www.kernel.org/pub/linux/utils/usb/usbutils/usbutils-009.tar.xz
+
+[vars]
+filesize=309608
+sha512=e5936a42615690c13e618655fc5eb4f414d9a84f85b860eaeb3bcf737258e05d299b09d1c5388d50c718626036ec8cac5d670ad567ceadfaab85f401f0744a8a
+pkgver=2
+
+[deps.host]
+dynamic-toolchain
+
+[deps]
+libusbx
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure --prefix="$butch_prefix" $xconfflags \
+  --sbindir="$butch_prefix"/bin
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+

@@ -1,0 +1,11 @@
+--- gcc-4.2.4.org/gcc/mklibgcc.in
++++ gcc-4.2.4/gcc/mklibgcc.in
+@@ -148,7 +148,7 @@
+ # Flag whether we need eh_dummy.c
+ need_eh_dummy=
+ 
+-if [ "$SHLIB_LINK" ]; then
++if true; then
+   # Test -fvisibility=hidden.  We need both a -fvisibility=hidden on
+   # the command line, and a #define to prevent libgcc2.h etc from
+   # overriding that with #pragmas.  The dance with @ is to prevent

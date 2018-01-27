@@ -1,0 +1,20 @@
+[vars]
+filesize=601642
+sha512=3d042e720c9854ae42ef72d1acf78ff8ff1cbf3c259d2c8bdba0a0b9cbf754fbe2dee9994cb9513cf1df24f26a857a13e828f0c88dc2e50f91e1c33a122eb385
+
+[mirrors]
+http://netcologne.dl.sourceforge.net/project/dos2unix/dos2unix/7.3.2/dos2unix-7.3.2.tar.gz
+
+[deps]
+
+[build]
+find ./ -name Makefile -exec sed -i 's,/usr,'"$butch_prefix"',g' {} \;
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+mv $dest/share/man/man1 $dest/share
+rm -rf $dest/share/man/*
+mv $dest/share/man1 $dest/share/man/
+rm -rf $dest/share/doc $dest/share/locale

@@ -1,0 +1,36 @@
+[mirrors]
+http://cdn.kernel.org/pub/linux/utils/kernel/kmod/kmod-23.tar.xz
+
+[vars]
+filesize=450376
+sha512=84b18d35117b33c48fd9b732a584a9f94caef553e371bd4e68953540f46fc6c7145c8c7163df898875437ad56e1a47e89be26531314299bce0026c46da9dd3c0
+
+[deps]
+zlib
+xz
+
+[build]
+for i in kmod-test-glibc-assumption ; do
+	patch -p1 < "$K"/"$i".patch
+done
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --with-zlib --disable-manpages --with-xz --enable-tools
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+#need symlinks...
+dest="$butch_install_dir""$butch_prefix"
+ln -s kmod "$dest"/bin/lsmod
+ln -s kmod "$dest"/bin/depmod
+ln -s kmod "$dest"/bin/insmod
+ln -s kmod "$dest"/bin/modinfo
+ln -s kmod "$dest"/bin/modprobe
+ln -s kmod "$dest"/bin/rmmod

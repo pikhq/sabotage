@@ -1,0 +1,26 @@
+[vars]
+tarball=libfm-1.2.4.tar.xz
+
+[deps]
+libfm-tarball
+
+[deps.host]
+pkgconf
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)  --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --with-extra-only  \
+  --with-gtk=no \
+  --disable-static
+
+for i in po ; do
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

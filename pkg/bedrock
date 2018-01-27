@@ -1,0 +1,15 @@
+[deps]
+9base
+busybox
+e2fsprogs
+extlinux
+gcc6
+gmp
+m4
+mpc
+mpfr
+musl
+dynamic-toolchain
+zlib
+capchroot
+bedrock-scripts

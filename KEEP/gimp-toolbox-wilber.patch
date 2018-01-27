@@ -1,0 +1,11 @@
+--- gimp-2.8.2.org/app/config/gimpguiconfig.c	2013-01-02 21:54:13.666000002 +0000
++++ gimp-2.8.2/app/config/gimpguiconfig.c	2013-01-10 15:07:06.807000004 +0000
+@@ -197,7 +197,7 @@
+   GIMP_CONFIG_INSTALL_PROP_BOOLEAN (object_class, PROP_TOOLBOX_WILBER,
+                                     "toolbox-wilber",
+                                     TOOLBOX_WILBER_BLURB,
+-                                    TRUE,
++                                    FALSE,
+                                     GIMP_PARAM_STATIC_STRINGS);
+   path = gimp_config_build_data_path ("themes");
+   GIMP_CONFIG_INSTALL_PROP_PATH (object_class, PROP_THEME_PATH,

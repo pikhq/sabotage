@@ -1,0 +1,92 @@
+[mirrors]
+http://cdn.kernel.org/pub/linux/utils/kbd/kbd-2.0.4.tar.xz
+http://ftp.cc.uoc.gr/mirrors/ftp.kernel.org/pub/linux/utils/kbd/kbd-2.0.4.tar.xz
+
+[vars]
+filesize=1031864
+sha512=5e264b3695b0af0bc85e0a4fa2c43e13648d8ea82102f3b051c28da2abfc52977577c470bce48f30cec9b0d215297e48c9b05e00561c990e3770fb68f6544e0f
+pkgver=2
+
+[build]
+cat << EOF > src/config.h
+#include <locale.h>
+#define DATADIR "."
+#define PACKAGE_VERSION ""
+#define PACKAGE_STRING ""
+static const char *progname = "loadkeyz";
+EOF
+sed -i 's/progname/prgname/g' src/loadkeys.c
+ln -sf ../config.h src/libkeymap/config.h
+$HOSTCC -Isrc -Isrc/libkeymap src/libkeymap/common.c \
+ src/libkeymap/findfile.c src/libkeymap/array.c \
+ src/libkeymap/parser.c src/libkeymap/analyze.c \
+ src/libkeymap/func.c src/libkeymap/kmap.c \
+ src/libkeymap/diacr.c src/libkeymap/ksyms.c \
+ src/libkeymap/dump.c src/libkeymap/loadkeys.c \
+ src/libkeymap/modifiers.c \
+ src/kbd_error.c src/getfd.c \
+ src/loadkeys.c -o loadkeys
+
+#http://hg.slitaz.org/wok/file/3f989c266063/kbd-base/stuff/keymaps-path.list
+slitaz_set=`cat << EOF
+azerty/be-latin1.map
+azerty/fr-latin1.map
+dvorak/dvorak.map
+dvorak/dvorak-r.map
+dvorak/dvorak-l.map
+qwerty/br-abnt2.map
+qwerty/cf.map
+qwerty/cz-lat2.map
+qwerty/dk-latin1.map
+qwerty/es.map
+qwerty/fi.map
+qwerty/it.map
+qwerty/is-latin1.map
+qwerty/jp106.map
+qwerty/nl2.map
+qwerty/no-latin1.map
+qwerty/pl2.map
+qwerty/pt-latin1.map
+qwerty/ru1.map
+qwerty/se-lat6.map
+qwerty/tr_q-latin5.map
+qwerty/trq.map
+qwerty/uk.map
+qwerty/us-acentos.map
+qwerty/us.map
+qwertz/croat.map
+qwertz/de_CH-latin1.map
+qwertz/de-latin1.map
+qwertz/de-latin1-nodeadkeys.map
+qwertz/fr_CH-latin1.map
+qwertz/hu.map
+qwertz/sg-latin1.map
+qwertz/slovene.map
+EOF
+`
+# slitaz installs only these files to save space.
+# so do we
+# see http://hg.slitaz.org/wok/file/3f989c266063/kbd-base/receipt
+
+dest="$butch_install_dir""$butch_prefix"
+# generate busybox loadkmap compatible keymaps from the gnu ones.
+# taken from http://hg.slitaz.org/wok/file/3f989c266063/kbd-busybox/receipt
+mkdir -p "$dest"/share/kmap
+for i in $slitaz_set ; do
+	k=$(basename $i)
+	k=${k%.map} # strips off .map from $k
+	./loadkeys -b -q data/keymaps/i386/$i > "$dest"/share/kmap/$k.kmap || echo "ERROR: loadkeys...$i"
+done
+
+# slitaz comes with a user friendly keyboard switched script: http://trixarian.net/paste/9abcb
+# (/sbin/tazkeymap). this can serve as a template. for now, just use loadkmap < /share/kmap/layout.kmap
+
+mkdir -p "$dest"/bin
+cat << EOF > "$dest"/bin/loadkeys
+#!/bin/sh
+echo 'use loadkmap < /share/kmap/layout.kmap to change keyboard layout'
+echo "available keyboard layouts are:"
+find /share/kmap -name '*.kmap' | sort
+exit 1
+EOF
+chmod +x "$dest"/bin/loadkeys

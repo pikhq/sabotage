@@ -1,0 +1,27 @@
+[mirrors]
+http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2
+
+[vars]
+desc="monstruous collection of C++ libraries"
+filesize=76553944
+sha512=7c851b3fc2b322ff05d642d9cf03e7c30c5f04d5cf0579c99046b1ec708901c58a3d349031dfe24591f5b88c1e664b6a0d40abea6cce89abb52080c02eb725df
+pkgver=1
+
+[deps]
+bzip2
+
+[deps.host]
+dynamic-toolchain
+
+[build]
+# https://svn.boost.org/trac/boost/ticket/7847
+patch -p1 < "$K"/boost-execinfo.patch
+
+# FIXME there's no DESTDIR support, thus internal hardcoded paths will be all wrong
+# https://svn.boost.org/trac/boost/ticket/7846
+CC=gcc CFLAGS=-D_GNU_SOURCE ./bootstrap.sh --prefix="$butch_install_dir""$butch_prefix"
+
+# boost wants to build some asm stuff which fails on mips, but the rest is properly
+# built/installed, so we must catch the error return code
+./b2 toolset=gcc-foo -d+2 stage threading=multi link=shared -j$MAKE_THREADS || echo ERROR1
+./b2 -d+2 install threading=multi link=shared || echo ERROR2

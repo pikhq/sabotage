@@ -1,0 +1,18 @@
+[mirrors]
+http://search.cpan.org/CPAN/authors/id/S/SU/SULLR/IO-Socket-SSL-2.047.tar.gz
+
+[vars]
+filesize=215199
+sha512=402d08d0c3fc9fb34ca83f371c1368cced68636198b0cb807562d480335784183850d1f1f9deb82b2ede312e86116624ed09439915c81cbbed3412e8e5697a72
+pkgver=2
+
+[deps]
+perl
+perl5-Net-SSLeay
+
+[build]
+perl Makefile.PL
+make -j$MAKE_THREADS
+[ -z "$CROSS_COMPILE" ] && make test
+make DESTDIR="$butch_install_dir" install
+

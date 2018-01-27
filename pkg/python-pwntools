@@ -1,0 +1,36 @@
+[mirrors]
+https://github.com/Gallopsled/pwntools/archive/3.6.1.tar.gz
+
+[vars]
+filesize=1118230
+sha512=0588c108950fbef6910050f2ace1cc29c8663e050f385fa793dd445cf221315aaf82d094934f9090555a1774beb525951ea30237ea0e294dc4c27d06d9d7c15b
+pkgver=3
+tarball=pwntools-3.6.1.tar.gz
+
+[deps.run]
+python
+python-pysocks
+python-pyserial
+python-python-dateutil
+python-six
+python-packaging
+python-elftools
+python-psutil
+python-intervaltree
+
+[deps.host]
+python
+
+[build]
+
+cat << EOF > pandoc
+#!/bin/sh
+echo pandoc v 1.18
+EOF
+chmod +x pandoc
+export PATH="$PATH:."
+
+patch -p1 < "$K"/pwntools-ldd.patch
+python setup.py build
+python setup.py install --prefix="$butch_prefix" \
+       --root="$butch_install_dir"

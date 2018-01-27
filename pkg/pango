@@ -1,0 +1,37 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/pango/1.40/pango-1.40.14.tar.xz
+
+[vars]
+filesize=858388
+sha512=35ba7bc8be3992f206ccc2cc5aca0b94e2a3832f887fc9c45b0e29fddcb9051ce05a74377de0ca4ff95a87983b15688fa5d379d592faf87aa8eaca25ac18b7ea
+pkgver=2
+uchkurl=https://github.com/GNOME/pango/releases
+
+[deps]
+glib
+fontconfig
+libstdc++
+libx11
+libxft
+cairo
+harfbuzz
+
+[build]
+touch pango/s-enum-types-h
+touch pango/s-enum-types-c
+
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > tests/Makefile.in
+
+[ -n "$CROSS_COMPILE" ] && {
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+  sed -i 's/cross_compiling=maybe/cross_compiling=yes/' configure
+}
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+CXXFLAGS="$optcflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-introspection=no FREETYPE_LIBS=-lfreetype
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

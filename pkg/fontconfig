@@ -1,0 +1,28 @@
+[mirrors]
+http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.6.tar.bz2
+
+[vars]
+filesize=1624683
+sha512=2a1d3e62cae2bfcae2e67e9cb75ab6534a35bda4215f1ad4b8bf757e77e7d9d609c016562f5288fd10046a0e94655a807f6dd044d7868ed81a146c4275c4dd06
+pkgver=4
+
+[deps]
+freetype
+expat
+
+[deps.host]
+pkgconf
+gperf
+
+[build]
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > test/Makefile.in
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+	--disable-docs \
+	
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

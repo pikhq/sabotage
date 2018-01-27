@@ -1,0 +1,11 @@
+--- icu.org/source/common/putilimp.h
++++ icu/source/common/putilimp.h
+@@ -116,7 +116,7 @@
+ #elif U_PLATFORM == U_PF_ANDROID
+ #   define U_TIMEZONE timezone
+ #elif U_PLATFORM_IS_LINUX_BASED
+-#   if !defined(__UCLIBC__)
++#   if defined(__GLIBC__) && !defined(__UCLIBC__)
+     /* __timezone is only available in glibc */
+ #       define U_TIMEZONE __timezone
+ #   endif

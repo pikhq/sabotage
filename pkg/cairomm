@@ -1,0 +1,32 @@
+[mirrors]
+http://www.cairographics.org/releases/cairomm-1.11.2.tar.gz
+
+[vars]
+filesize=1217346
+sha512=bb7ae2c4a150c8c336009dd620939af760e91bca87bd691fa5f7bbb3c78324f8f073f4614b369e4c5946045d507661511f124692b86d00a0f23920d5fad9940a
+pkgver=2
+
+[deps]
+cairo
+libsigc++
+
+[deps.host]
+pkgconf
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS=-D_GNU_SOURCE \
+CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+for i in tests docs examples ; do
+        printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

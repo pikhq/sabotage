@@ -1,0 +1,30 @@
+[mirrors]
+http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-2.5.0.tar.bz2
+
+[vars]
+filesize=260225
+sha512=df8e7174cdc072d9280cfeecf74ca482b6523636b6d2e2834016c1aa972f71d63fba4bd33f0d58bca22a27f73cb7f028cb0d080760d88983ca40f328b2e35314
+pkgver=2
+desc='tool to switch 3G USB modems from storage to modem mode'
+
+[deps]
+usb-modeswitch-data
+libusbx
+
+[build]
+cd jim/autosetup
+cp -f "$K"/config.sub .
+cd ..
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure --prefix="$butch_prefix" $xconfflags
+cd ..
+
+make V=1 PREFIX="$butch_install_dir""$butch_prefix" \
+     -j$MAKE_THREADS -C jim lib
+make DESTDIR="$butch_install_dir" PREFIX="$butch_install_dir""$butch_prefix"\
+     SBINDIR="$butch_install_dir""$butch_prefix"/bin \
+     install

@@ -1,0 +1,11 @@
+--- audacity-src-2.0.2.org/lib-src/FileDialog/gtk/FileDialogPrivate.cpp	2013-01-02 20:38:15.152000003 +0000
++++ audacity-src-2.0.2/lib-src/FileDialog/gtk/FileDialogPrivate.cpp	2013-01-07 20:09:45.727000002 +0000
+@@ -219,7 +219,7 @@
+                                              gtk_action,
+                                              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                              ok_btn_stock, GTK_RESPONSE_ACCEPT,
+-                                             NULL);
++                                             (void *) 0);
+       
+       // Allow pressing "Enter" key for default action
+       gtk_dialog_set_default_response(GTK_DIALOG(m_widget), GTK_RESPONSE_ACCEPT);

@@ -1,0 +1,20 @@
+[mirrors]
+http://xorg.freedesktop.org/archive/individual/lib/libXdamage-1.1.4.tar.gz
+
+[vars]
+filesize=339060
+sha512=903cb9c40108b85c29da9343d54e76f73eaa393f5521ed5daea9ad98ee9bc64aecee818f4461fe41b347d77ea90140f2e9f1bfbf7b4b101b6b2b993ec2183923
+
+[deps]
+damageproto
+libxfixes
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags -D_GNU_SOURCE" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

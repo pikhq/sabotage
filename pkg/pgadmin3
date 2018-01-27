@@ -1,0 +1,22 @@
+[mirrors]
+http://ftp.postgresql.org/pub/pgadmin3/release/v1.16.1/src/pgadmin3-1.16.1.tar.gz
+
+[vars]
+filesize=13783723
+sha512=f5f110f99d15801dc2b2253c803cf038871461909cb63f114ee769ff0977183d6825f3bf13f378822f874fc15aa593f52cd999ccb97370b786b6e02f45ce4a81
+
+[deps]
+libxml2
+libxslt
+gtk+2
+postgresql
+wxgtk
+
+[build]
+
+printf '#!/bin/sh\ntrue\n' > pgadmin/ver_svn.sh
+
+CXXFLAGS="-D_GNU_SOURCE $optcflags -std=gnu++03" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

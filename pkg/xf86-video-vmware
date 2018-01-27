@@ -1,0 +1,20 @@
+[deps]
+xproto
+libx11
+xorg-server
+
+[vars]
+filesize=459255
+sha512=43d6a15e40896c793e49a1670b937e417271baff15b737b6b8cd3845bb7d2fc6354bf53cb40350caf0e7aac1e005a0fb2c9c80ce25690678b79e8e48f05f1de0
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/driver/xf86-video-vmware-13.1.0.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+./configure -C --prefix="$butch_prefix" $xconfflags
+make DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

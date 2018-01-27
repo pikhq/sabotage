@@ -1,0 +1,26 @@
+--- xmms-1.2.6.org/xmms/util.c	2013-01-02 22:46:18.506000002 +0000
++++ xmms-1.2.6/xmms/util.c	2013-01-02 23:08:27.924000002 +0000
+@@ -26,6 +26,12 @@
+ #include <fts.h>
+ #endif
+ 
++#define gtk_item_factory_dump_rc(A, B, C) do {} while (0)
++#define gtk_item_factory_parse_rc(A) do {} while (0)
++#define gtk_rc_init() do {} while (0)
++
++
++
+ static GQuark quark_popup_data;
+ 
+ 
+--- xmms-1.2.6.org/xmms/main.c	2013-01-02 22:46:18.510000002 +0000
++++ xmms-1.2.6/xmms/main.c	2013-01-02 23:11:13.151000004 +0000
+@@ -19,6 +19,8 @@
+  */
+ #include "xmms.h"
+ 
++#define gtk_rc_init() do {} while (0)
++
+ #include <gdk/gdkx.h>
+ #include <gdk/gdk.h>
+ #include <X11/Xlib.h>

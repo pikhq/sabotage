@@ -1,0 +1,20 @@
+--- mysql-5.6.11.org/storage/innobase/row/row0log.cc
++++ mysql-5.6.11/storage/innobase/row/row0log.cc
+@@ -2359,7 +2359,7 @@
+ 		and be ignored when the operation is unsupported. */
+ 		fallocate(index->online_log->fd,
+ 			  FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+-			  ofs, srv_buf_size);
++			  ofs, srv_sort_buf_size);
+ #endif /* FALLOC_FL_PUNCH_HOLE */
+ 
+ 		next_mrec = index->online_log->head.block;
+@@ -3147,7 +3147,7 @@
+ 		and be ignored when the operation is unsupported. */
+ 		fallocate(index->online_log->fd,
+ 			  FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+-			  ofs, srv_buf_size);
++			  ofs, srv_sort_buf_size);
+ #endif /* FALLOC_FL_PUNCH_HOLE */
+ 
+ 		next_mrec = index->online_log->head.block;

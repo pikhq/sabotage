@@ -1,0 +1,49 @@
+[mirrors]
+http://download.icu-project.org/files/icu4c/59.1/icu4c-59_1-src.tgz
+
+[vars]
+filesize=22706578
+sha512=9348aa68d72a74cd1f26588c30c80eee1b48800a26930d7eb0749390fd65f7930ee8843058b6a6dd5f265e79054fef661e807ded16a1ad691cbc5ebc5ab944c4
+pkgver=2
+tardir=icu
+
+[deps]
+
+[build]
+cd source
+# https://git.alpinelinux.org/cgit/aports/tree/main/icu/APKBUILD#n37
+sed -i -e 's,DU_HAVE_STRTOD_L=1,DU_HAVE_STRTOD_L=0,' configure
+# https://bugs.icu-project.org/trac/ticket/6102
+for x in ARFLAGS CFLAGS CPPFLAGS CXXFLAGS FFLAGS LDFLAGS; do
+	sed -i -e "/^${x} =.*/s:@${x}@::" "config/Makefile.inc.in" \
+		|| return 1
+done
+cd ..
+
+
+cp -f "$K"/config.sub source/
+if [ -n "$CROSS_COMPILE" ] ; then
+  echo '**** building for host ****'
+  mkdir host
+  cd host
+  CPPFLAGS=-D_GNU_SOURCE CFLAGS="-O0 -g0" CXXFLAGS="-O0 -g0" \
+  CC=gcc CXX=g++ ../source/configure \
+    --enable-strict=no --enable-static --enable-shared=no --enable-tests=no \
+    --enable-samples=no --enable-dyload=no
+  make VERBOSE=1 -j$MAKE_THREADS
+  echo '**** host build finished ****'
+
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir --with-cross-build=$PWD"
+  cd ..
+fi
+
+cd source
+[ -z "$CXX" ] && export CXX=g++
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure --prefix="$butch_prefix" $xconfflags \
+  --disable-tests --disable-samples
+make VERBOSE=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

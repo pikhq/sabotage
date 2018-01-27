@@ -1,0 +1,11 @@
+--- grafx2.org/src/init.c	2013-01-02 19:51:23.898000003 +0000
++++ grafx2/src/init.c	2013-01-02 19:54:08.358000003 +0000
+@@ -2772,7 +2772,7 @@
+ 
+ #if defined(__WIN32__)
+   #define SIGHANDLER_T __p_sig_fn_t
+-#elif defined(__macosx__)
++#elif defined(__macosx__) || defined(__linux__)
+   typedef void (*sig_t) (int);
+   #define SIGHANDLER_T sig_t
+ #else

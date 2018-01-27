@@ -1,0 +1,38 @@
+[mirrors]
+http://nmap.org/dist/nmap-7.40.tar.bz2
+
+[vars]
+filesize=9043221
+sha512=98e37bf1c29789ea19ee4542d719ed6970c8bcc1bf92af4948a52a75273c2403329149f6b5df6368c23840d1bb3f47af9e5ce543f7a36596a33896609574f02d
+pkgver=4
+desc='port scanner/pentest tool with a gazillion of features'
+
+[deps]
+libpcap
+pcre
+zlib
+lua
+libressl
+
+[deps.host]
+dynamic-toolchain
+
+[build]
+patch -p1 < "$K"/nmap-configure-pcap_suitable.patch
+patch -p1 < "$K"/nmap-nbase_h.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CFLAGS="-D_GNU_SOURCE -D_BSD_SOURCE $optcflags" \
+CXXFLAGS="-DIPPROTO_MAX=256 $CFLAGS" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+    --without-subversion --without-nmap-update --without-zenmap \
+    --with-liblua=included \
+    --without-ndiff \
+    ac_cv_working_getaddrinfo=yes ac_cv_working_getnameinfo=yes
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install STRIP=true

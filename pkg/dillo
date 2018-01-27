@@ -1,0 +1,31 @@
+[mirrors]
+http://www.dillo.org/download/dillo-3.0.3.tar.bz2
+
+[vars]
+filesize=685824
+sha512=6feabc19b31deb099bc974be28e009b688338b7cf726e2c7d917cfa07e2c28bfba3ef09be9427e5156bf195623516ce81f8b8ef3c5c426bfac7de505c70a5ef8
+
+[deps]
+fltk13
+libpng
+libressl
+
+[build]
+CFLAGS=-D_GNU_SOURCE ./configure -C --prefix="$butch_prefix" \
+  --enable-ssl
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/share/applications/
+cat << EOF > "$dest"/share/applications/dillo.desktop
+[Desktop Entry]
+Name=Dillo
+Comment=Web Browser
+Exec=dillo
+Icon=dillo
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
+Terminal=false
+Type=Application
+Categories=GTK;Network;WebBrowser;
+EOF

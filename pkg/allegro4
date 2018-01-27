@@ -1,0 +1,58 @@
+[mirrors]
+http://downloads.sourceforge.net/project/alleg/allegro/4.4.2/allegro-4.4.2.tar.gz
+http://switch.dl.sourceforge.net/project/alleg/allegro/4.4.2/allegro-4.4.2.tar.gz
+http://heanet.dl.sourceforge.net/project/alleg/allegro/4.4.2/allegro-4.4.2.tar.gz
+
+[vars]
+filesize=4674902
+sha512=ad4bc1c15fc83bc8a019031fed82f37a793664bb6683cf023ec05fd9cd945f00f43764f3126892426036249c63afa5678fb4906407bb325ce5827b36aee0fa86
+
+[deps.host]
+cmake
+make
+
+[deps]
+alsa-lib
+libjpeg
+mesalib
+glu
+libvorbis
+libxcursor
+libxpm
+libpng
+
+[build]
+mkdir build && cd build
+for i in ar ld nm objcopy objdump strip ; do
+printf '#!/bin/sh\n%s%s "$@"\n' "$CROSS_COMPILE" "$i" > "$CROSS_COMPILE""$i"
+chmod +x "$CROSS_COMPILE""$i"
+done
+xconfflags=
+[ -n "$CROSS_COMPILE" ] && xconfflags="
+-DCMAKE_FIND_ROOT_PATH=$butch_root_dir$butch_prefix \
+-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+-DCMAKE_AR="$CROSS_COMPILE"ar \
+-DCMAKE_LD="$CROSS_COMPILE"ld \
+-DCMAKE_NM="$CROSS_COMPILE"nm \
+-DCMAKE_OBJCOPY="$CROSS_COMPILE"objcopy \
+-DCMAKE_OBJDUMP="$CROSS_COMPILE"objdump \
+-DCMAKE_STRIP="$CROSS_COMPILE"strip \
+"
+
+cmake $xconfflags \
+  -DCMAKE_INSTALL_PREFIX=$butch_prefix \
+  -DMANDIR=share/man \
+  -DCMAKE_C_FLAGS="-D_GNU_SOURCE $optcflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib -fno-strict-aliasing" \
+  -DCMAKE_LD_FLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  -DWANT_TESTS=OFF \
+  -DWANT_DOCS=OFF \
+  -DWANT_TOOLS=OFF \
+..
+
+mkdir -p docs
+cp -r ../docs/txt docs/
+
+make -j$MAKE_THREADS VERBOSE=1
+make DESTDIR="$butch_install_dir" install

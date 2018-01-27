@@ -1,0 +1,23 @@
+[mirrors]
+http://znc.in/releases/archive/znc-1.6.5.tar.gz
+
+[vars]
+filesize=1470681
+sha512=d78603ac86d1fb92cdf591b1eb6d32fa19b0e39414bd69e1300c537051612ae590c43d3b8e4dd598cdff605bf3aa1d3d5d806edd428d15d50f733e1670f3e626
+pkgver=4
+desc='IRC bouncer'
+
+[deps]
+libressl
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" \
+CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

@@ -1,0 +1,23 @@
+[mirrors]
+http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2
+
+[vars]
+filesize=1903175
+sha512=9ab9b3af1c35d16a7d6d84f61f59ef3180132e30c27bdd7c0fa2683e0d00e2c791accbc7fd2c90718cc947d8bd10ee4a5940fb55f90f1fd7b0ed30583a47dbbd
+
+[deps]
+libogg
+libvorbis
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-sdltest \
+  --disable-examples
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

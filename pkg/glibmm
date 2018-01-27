@@ -1,0 +1,21 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/glibmm/2.44/glibmm-2.44.0.tar.xz
+
+[vars]
+filesize=6102664
+sha512=4a932b127ce0ed0798cef3555fdd1ca1632fc10720b74f9a39626989c216542807d76ae67ebc980049b65b1c163d236fc9875506ca2d80584c724394bbb8bfd7
+
+[deps]
+glib
+libsigc++
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

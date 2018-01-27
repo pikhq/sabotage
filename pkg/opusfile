@@ -1,0 +1,25 @@
+[mirrors]
+https://ftp.mozilla.org/pub/mozilla.org/opus/opusfile-0.9.tar.gz
+
+[vars]
+filesize=467683
+sha512=9167b100ad4ea79af8bbe60ce710409b0cfd41b09d640a203a83a751c30eed0bd91b28cbf4d5fe3fcf41269881eb579300c5568fdd6f30208c6b84b429ad6632
+desc='library for decoding and seeking in .opus files'
+
+[deps]
+libopus
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags \
+  --disable-http
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

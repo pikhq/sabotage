@@ -1,0 +1,10 @@
+--- DirectFB-1.6.2.org/gfxdrivers/matrox/matrox_screen_crtc2.c
++++ DirectFB-1.6.2/gfxdrivers/matrox/matrox_screen_crtc2.c
+@@ -27,6 +27,7 @@
+ */
+ 
+ #include <config.h>
++#include <sys/types.h>
+ 
+ #include <stdio.h>
+ #include <sys/ioctl.h>

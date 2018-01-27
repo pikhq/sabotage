@@ -1,0 +1,20 @@
+--- glib-2.45.2.org/gio/Makefile.in
++++ glib-2.45.2/gio/Makefile.in
+@@ -832,7 +832,7 @@
+     *) \
+       b='$*';; \
+   esac
+-DIST_SUBDIRS = gdbus-2.0/codegen xdgmime inotify kqueue win32 . tests \
++DIST_SUBDIRS = xdgmime inotify kqueue win32 . tests \
+ 	fam
+ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/gio.rc.in \
+ 	$(srcdir)/gnetworking.h.in $(top_srcdir)/depcomp \
+@@ -1213,7 +1213,7 @@
+ @ENABLE_INSTALLED_TESTS_TRUE@                      $(dist_test_scripts) $(dist_installed_test_scripts)
+ 
+ @ENABLE_INSTALLED_TESTS_TRUE@installed_test_meta_DATA = $(installed_testcases:=.test)
+-SUBDIRS = gdbus-2.0/codegen $(am__append_15) $(am__append_19) \
++SUBDIRS = $(am__append_15) $(am__append_19) \
+ 	$(am__append_22) $(am__append_25) . tests $(am__append_28)
+ @MS_LIB_AVAILABLE_TRUE@@OS_WIN32_AND_DLL_COMPILATION_TRUE@install_ms_lib_cmd = $(INSTALL) gio-2.0.lib $(DESTDIR)$(libdir)
+ @MS_LIB_AVAILABLE_TRUE@@OS_WIN32_AND_DLL_COMPILATION_TRUE@uninstall_ms_lib_cmd = -rm $(DESTDIR)$(libdir)/gio-2.0.lib

@@ -1,0 +1,29 @@
+[mirrors]
+https://github.com/adventuregamestudio/ags/releases/download/v.3.4.0.16/ags_linux_v.3.4.0.16.tar.xz
+
+[vars]
+filesize=859532
+sha512=161877d6735a274ac72bca1c37064d60aa42153238009a44259d3c2c55eba4cf72280a2f70217e899e7721353a0bd631041eeddd5b858169f69c94fd6a280984
+pkgver=7
+desc='adventure game studio engine to play several hundreds of free ags games'
+
+[mirrors]
+
+[deps]
+freetype
+allegro4
+dumb
+libtheora
+libstdc++
+
+[build]
+mkdir -p bin
+printf "#!/bin/sh\necho -lalleg -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib\n" > bin/allegro-config
+chmod +x bin/allegro-config
+export PATH="$PWD/bin:$PATH"
+
+cd Engine
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+make V=1 -j$MAKE_THREADS
+install -Dm 755 ags "$butch_install_dir"$butch_prefix/bin/ags

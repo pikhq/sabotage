@@ -1,0 +1,20 @@
+[mirrors]
+http://downloads.sourceforge.net/project/lxde/LXAppearance/lxappearance-0.6.2.tar.xz
+
+[vars]
+filesize=165788
+sha512=ddfd63045cae61f60e2745e7fbdafcf68cdc0443a7ff271ff11a40f39b2e08de902a980f6c68e1615a690690a3c33abc2de8ab854d08f7707be210b0addb67e7
+
+[deps]
+gtk+2
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

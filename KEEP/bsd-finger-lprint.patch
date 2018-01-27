@@ -1,0 +1,20 @@
+--- bsd-finger.orig/finger/lprint.c	2013-09-01 12:12:33.791692557 +0000
++++ bsd-finger-0.17/finger/lprint.c	2013-09-01 12:14:01.307243506 +0000
+@@ -40,6 +40,7 @@
+ char lprint_rcsid[] = 
+   "$Id: lprint.c,v 1.11 1999/09/14 10:51:11 dholland Exp $";
+ 
++#include <fcntl.h>
+ #include <stdio.h>
+ #include <ctype.h>
+ #include <paths.h>
+--- bsd-finger.orig/finger/util.c	2013-09-01 12:12:33.791692557 +0000
++++ bsd-finger-0.17/finger/util.c	2013-09-01 12:16:33.815295145 +0000
+@@ -39,6 +39,7 @@
+ char util_rcsid[] = "$Id: util.c,v 1.18 1999/09/28 22:53:58 netbug Exp $";
+ #endif /* not lint */
+ 
++#include <fcntl.h>
+ #include <sys/types.h>
+ /* #include <sys/param.h> <--- unused? */
+ #include <sys/stat.h>

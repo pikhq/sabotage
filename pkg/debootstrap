@@ -1,0 +1,17 @@
+[mirrors]
+http://http.debian.net/debian/pool/main/d/debootstrap/debootstrap_1.0.67.tar.gz
+
+[vars]
+filesize=61863
+sha512=751cfabdcefa6de099f12377f4e5ac611d97952197040c8d194abc0ac8f3abd59c21110828592bfa2c7a92299db57fe8c6ee0991e11894470f444a71cfd25151
+tardir=debootstrap-1.0.67
+
+[deps]
+dpkg
+makedev-debian
+
+[build]
+sed -i 's,usr/sbin,bin,g; s,usr/share,share,g;' Makefile
+sed -i 's,--mtime="$(DATE)" ,,g' Makefile
+make MAKEDEV="/bin/MAKEDEV" -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

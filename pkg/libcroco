@@ -1,0 +1,27 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/libcroco/0.6/libcroco-0.6.12.tar.xz
+
+[vars]
+filesize=482028
+sha512=af9a171d5ccded255b57f170576e67155f12fa0f61ab3e379e907975f77afc37e82e22772c6019b2897cffc15b2425faf3ccfda92b1a45b23eda2519debabeb6
+pkgver=2
+
+[deps]
+glib
+libxml2
+
+[build]
+#patch -p1 < "$K"/some.patch
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+
+#[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

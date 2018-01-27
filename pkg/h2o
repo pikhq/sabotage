@@ -1,0 +1,41 @@
+[mirrors]
+https://github.com/h2o/h2o/archive/v1.7.0.tar.gz
+
+[vars]
+filesize=6543732
+sha512=b905cd4c99f150495d7252cc911cfd05285dc8aa1874ffc078e57185b7b3f613d5d0ab7950198d1431e1ed610371f3bee282f7dfef65f1575cf333267ebafa06
+tardir=h2o-1.7.0
+tarball=h2o-1.7.0.tar.gz
+service=h2o
+serviceflags="--down --log"
+
+[deps]
+libressl
+
+[deps.host]
+cmake
+perl
+
+[build]
+mkdir -p build && cd build
+for i in ar ld nm objcopy objdump strip ; do
+printf '#!/bin/sh\n%s%s "$@"\n' "$CROSS_COMPILE" "$i" > "$CROSS_COMPILE""$i"
+chmod +x "$CROSS_COMPILE""$i"
+done
+[ -n "$CROSS_COMPILE" ] && xconfflags="
+-DCMAKE_FIND_ROOT_PATH=$butch_root_dir$butch_prefix \
+-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+-DCMAKE_AR="$CROSS_COMPILE"ar \
+-DCMAKE_LD="$CROSS_COMPILE"ld \
+-DCMAKE_NM="$CROSS_COMPILE"nm \
+-DCMAKE_OBJCOPY="$CROSS_COMPILE"objcopy \
+-DCMAKE_OBJDUMP="$CROSS_COMPILE"objdump \
+-DCMAKE_STRIP="$CROSS_COMPILE"strip \
+"
+CFLAGS="-D_GNU_SOURCE $optcflags" LDFLAGS="$optldflags" \
+cmake $xconfflags -DCMAKE_INSTALL_PREFIX="$butch_prefix" ..
+make VERBOSE=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+

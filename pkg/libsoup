@@ -1,0 +1,30 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/libsoup/2.44/libsoup-2.44.1.tar.xz
+
+[vars]
+filesize=746716
+sha512=07120996737d86f45acb80b05147e9af0e3e183bec9a97727881b8dc05cb154c679a785f4d5a3a53d0e3611ae0198df977bc9059623c9f1e8e01a03d4c7acb95
+
+[deps]
+libxml2
+sqlite
+gnutls
+glib-networking
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --disable-more-warnings --disable-tls-check \
+  --disable-glibtest --disable-nls --disable-gtk-doc \
+  --disable-gtk-doc-html --without-gnome \
+  --disable-introspection
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

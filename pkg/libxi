@@ -1,0 +1,20 @@
+[deps]
+libxext
+inputproto
+libxfixes
+
+[vars]
+filesize=440969
+sha512=f419a30711220f51bc77ba4cd2759e565d4f8ba9960c3bcce3ec80ab84389fe220e4276887b125ec105810bd219698fb3a22ec4b9d91eab7235ed9a3ca6925c3
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/lib/libXi-1.7.2.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  ac_cv_func__XEatDataWords=yes
+make V=1 DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

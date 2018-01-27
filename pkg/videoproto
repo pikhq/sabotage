@@ -1,0 +1,16 @@
+[deps]
+util-macros
+
+[vars]
+filesize=118862
+sha512=57ca8981b217724e4e0599624e6d8077aca0f2568855c54b74dbf5e03d25864eb114540b02a49c11487beb03d55d52efc09d8a7fb86a3078a4d52f4a3042ef36
+
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/proto/videoproto-2.3.2.tar.bz2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+CFLAGS="$optcflags" LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+make DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

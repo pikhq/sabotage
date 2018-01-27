@@ -1,0 +1,18 @@
+[mirrors]
+http://www.brain-dump.org/projects/dvtm/dvtm-0.15.tar.gz
+
+[vars]
+filesize=40511
+sha512=48a0c8fd6a50fe5d43414d0223c9f4b9920a31d42fe3bfc428ce1ae7d0e41a41ebe2597eae0824c7c76bfb0e32a13e440c8d5fcdb1886d55d6791fa3fe3fd77b
+pkgver=2
+
+[deps]
+curses
+
+[build]
+make all install \
+ PREFIX="$butch_prefix" DESTDIR="$butch_install_dir" \
+ CFLAGS="-std=gnu99 $optcflags -I. -DVERSION=\\\"0.15\\\"" \
+ LDFLAGS="-lcurses -lterminfo $optldflags" \
+ STRIP=true \
+ -j$MAKE_THREADS

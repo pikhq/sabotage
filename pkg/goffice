@@ -1,0 +1,30 @@
+[mirrors]
+http://ftp.gnome.org/pub/GNOME/sources/goffice/0.8/goffice-0.8.17.tar.xz
+
+[vars]
+filesize=1814488
+sha512=61a3063d37e2ded4d4065d261f728c862daea04090ac38abe2524089ed1ee253e0d77e501f5b3451b1e011491a8225f90fd4914f28ce2a347ecf561098e6400c
+
+[deps]
+gtk+2
+libgsf
+pcre
+
+[build]
+. "$K"/intltool-fix
+
+sed -i 's#info (r, NULL#full&, 0#' goffice/utils/regutf8.c
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+cp -f "$K"/config.sub .
+CFLAGS="$optcflags" LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+CPPFLAGS=-D_GNU_SOURCE \
+  ./configure -C --prefix="$butch_prefix" $xconfflags
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+
+for i in po ; do
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

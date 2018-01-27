@@ -1,0 +1,26 @@
+[mirrors]
+https://tls.mbed.org/download/mbedtls-2.6.0-apache.tgz
+
+[vars]
+filesize=1973397
+sha512=5eb47d95a31c63e43074a115d141dedae869c43cbe62d5cf7bde11440e14fb8879ac6ed204d0d741b3501b8ba551019a5d47cbdf6673d18b61296be4463e9ffd
+pkgver=5
+tardir=mbedtls-2.6.0
+
+[deps]
+
+[build]
+# NOTE: the mirror requires tls, download with curl:
+# 	USE_CURL=1 butch install mbedtls
+# hiawatha requires these options (see USE_SYSTEM_MBEDTLS in its
+# CMakeLists.txt)
+echo "#define MBEDTLS_THREADING_C" >> include/mbedtls/config.h
+echo "#define MBEDTLS_THREADING_PTHREAD" >> include/mbedtls/config.h
+
+# build the library and all binaries statically (includes
+# mbedtls_selftest)
+sed -i 's@^\.SILENT:.*$@@' library/Makefile programs/Makefile Makefile
+make -j$MAKE_THREADS no_test CFLAGS="$optcflags" LDFLAGS="$optldflags"
+
+make DESTDIR="$butch_install_dir" install
+

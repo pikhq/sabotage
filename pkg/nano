@@ -1,5 +1,26 @@
-tarxf http://www.nano-editor.org/dist/v2.3/ nano-2.3.1 .tar.gz
-./configure --prefix=/
-make
-make DESTDIR=$R install
+[mirrors]
+http://www.nano-editor.org/dist/v2.9/nano-2.9.1.tar.xz
+
+[vars]
+filesize=1485072
+sha512=ce594171979a35b2db2e255af962bf91bd826afba1e986abd217138f2879a956d2f6dd882dd5071eedb75467c1d8c048ddda2bbef2cac523b1cc3b0847ed6af9
+pkgver=8
+desc='a terminal-based, easy-to-use text editor'
+uchkurl=https://nano-editor.org/download.php
+
+[deps]
+curses
+
+[build]
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+printf '#!/bin/sh\necho -lncursesw -lterminfo\n' > ncursesw5-config
+chmod +x ncursesw5-config
+PATH="$PWD:$PATH" \
+LDFLAGS="-static $optldflags" CFLAGS="$optcflags" \
+./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-utf8 \
+  --disable-nls \
+  --disable-wrapping
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
 

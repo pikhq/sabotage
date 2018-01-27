@@ -1,0 +1,25 @@
+[mirrors]
+http://xorg.freedesktop.org/releases/individual/driver/xf86-video-nv-2.1.21.tar.bz2
+
+[vars]
+filesize=424091
+sha512=97cec43100b00609d43cf45937bafea387fd656cb5e321fcbed426973320097ba6601e4e548026618b3cf0c480f58956874a201791dc0cc39297b5fd54979ca7
+pkgver=2
+desc='driver for nvidia hardware up to GTX with GT200 chip'
+
+[deps]
+xproto
+libx11
+xorg-server
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C --prefix="$butch_prefix" $xconfflags
+
+make DESTDIR="$butch_install_dir" -j$MAKE_THREADS install
+

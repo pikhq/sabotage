@@ -1,0 +1,28 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/gst-plugins-base/0.10/gst-plugins-base-0.10.36.tar.xz
+
+[vars]
+filesize=2364108
+sha512=ea77778e073515df58229a641b4363df31f0b80204a5a43a8feb31f0b03a5a4b9b79d6e07e1615c773a59927a9b649f1b1d782def1120d581d09a090be8363b8
+
+[deps]
+libogg
+libvorbis
+gstreamer01
+pango
+
+[build]
+cp -f "$K"/config.sub .
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+--disable-nls \
+--disable-oggtest --disable-vorbistest --disable-freetypetest \
+--disable-examples--disable-nls --disable-silent-rules
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

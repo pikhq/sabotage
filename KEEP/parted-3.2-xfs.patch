@@ -1,0 +1,13 @@
+diff -r -c parted-3.2/libparted/fs/xfs/platform_defs.h parted-3.2-fixed/libparted/fs/xfs/platform_defs.h
+*** parted-3.2/libparted/fs/xfs/platform_defs.h	Sun Jun 15 18:17:43 2014
+--- parted-3.2-fixed/libparted/fs/xfs/platform_defs.h	Sat Oct 11 15:33:49 2014
+***************
+*** 44,49 ****
+--- 44,50 ----
+  #include <unistd.h>
+  #include <sys/param.h>
+  #include <sys/types.h>
++ #include <fcntl.h>
+  
+  #if (__GLIBC__ <= 2) && (__GLIBC_MINOR__ <= 1)
+  # define constpp	const char * const *

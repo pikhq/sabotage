@@ -1,0 +1,23 @@
+[mirrors]
+http://xmlsoft.org/sources/libxslt-1.1.32.tar.gz
+
+[vars]
+filesize=3440715
+sha512=e1ed3c103cd4c9897e7dd2360a11f63cf30382b7566ce6fcc81117804e203714446b5a62179ce628c3834b0b32ecdeeceecbdfa417507ce9ed5a107a0ebefb39
+pkgver=3
+desc='XSLT transformation library from the libxml2 authors'
+
+[deps]
+libxml2
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+printf '#!/bin/sh\n[ "$1" = --version ] && echo 2.9.4 || echo -lxml2 -I%s/include/libxml2\n' "$butch_root_dir$butch_prefix" > xml2-config
+chmod +x xml2-config
+export PATH="$PWD:$PATH"
+CFLAGS=-D_GNU_SOURCE ./configure -C --prefix="$butch_prefix" \
+  --without-python --without-crypto $xconfflags
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

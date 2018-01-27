@@ -1,0 +1,50 @@
+#!/bin/sh
+if [ -z "$C" ] ; then
+        echo 'C not set, did you source config ?'
+        exit 1
+fi
+
+getfilesize() {
+	stat "$1" | awk '/Size: /{print $2}'
+}
+
+ec=0
+for p in "$S"/pkg/* ; do
+	fn=
+	fs=
+	section=
+	while read l ; do
+		if [ -z "$l" ] ; then :
+		elif [ "$section" = mirrors ] && [ -z "$fn" ] ; then
+			fn=$(basename "$l")
+		elif [ "$section" = vars ] && [ -z "$fs" ] ; then
+			case "$l" in filesize=*) fs="${l#*=}" ;; esac
+		elif [ "$l" = "[build]" ]; then
+			break
+		else
+			if [ "$l" = '[mirrors]' ] || [ "$l" = '[vars]' ] ; then
+				section=$(echo "$l"|sed -e 's/^\[//' -e 's/\]$//')
+			else
+				case "$l" in '['*) section= ;;	esac
+			fi
+		fi
+		if [ -n "$fn" ] && [ -n "$fs" ] ; then
+			break
+		fi
+	done < "$p"
+	if [ -z "$fn" ] ; then
+		# doesnt seem to have [mirrors]
+		:
+	elif [ -n "$fn" ] && [ -z "$fs" ] ; then
+		echo "error parsing $p"
+		exit 1
+	elif [ -e "$C"/"$fn" ] ; then
+		fsgot=$(getfilesize "$C"/"$fn")
+		if [ "$fsgot" != "$fs" ] ; then
+			echo "$fn: want $fs, got $fsgot"
+			ec=1
+		fi
+	fi
+done
+
+exit "$ec"

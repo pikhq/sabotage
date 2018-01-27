@@ -1,0 +1,32 @@
+[mirrors]
+https://pypi.python.org/packages/59/01/82c7024afccb8b8e6c2cc9df85d85c29bbb54f1f0b71703f829b11c4ca0b/angr-6.7.7.31.tar.gz
+
+[vars]
+filesize=321684
+sha512=1dde57b616bc2a8a2fcdb2746b24bee0cb09a23e8e5397cf03d0986fa2778898cef596093fb5f23b6ecda82396447000e5d88832278c7ddde155e1c016ac400a
+pkgver=2
+
+[deps.run]
+python
+python-cle
+python-simuvex
+python-networkx
+python-mulpyplexer
+python-futures
+python-progressbar
+python-rpyc
+python-capstone
+
+[deps.host]
+python
+
+[build]
+python setup.py build
+python setup.py install --prefix="$butch_prefix" \
+       --root="$butch_install_dir"
+cat << EOF > angr.sh
+#!/bin/sh
+export LD_LIBRARY_PATH=$butch_prefix/lib/python2.7/site-packages/pyvex/lib/
+exec python -i "\$@"
+EOF
+install -Dm 755 angr.sh "$butch_install_dir""$butch_prefix"/bin/angr

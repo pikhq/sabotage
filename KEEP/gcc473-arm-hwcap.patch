@@ -1,0 +1,11 @@
+--- gcc-4.7.3/libitm/config/arm/hwcap.cc	2011-12-15 03:24:05.000000000 +0000
++++ gcc-4.7.3.patched/libitm/config/arm/hwcap.cc	2013-07-10 13:57:20.977000004 +0000
+@@ -40,7 +40,7 @@
+ 
+ #ifdef __linux__
+ #include <unistd.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>
+ #include <elf.h>
+ 
+ static void __attribute__((constructor))

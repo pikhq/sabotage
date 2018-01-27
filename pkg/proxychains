@@ -1,0 +1,16 @@
+[mirrors]
+https://github.com/rofl0r/proxychains-ng/releases/download/v4.12/proxychains-ng-4.12.tar.xz
+
+[vars]
+filesize=31816
+sha512=c1319065b2885fb16f1cd10092a25f49c20ace82dc67edcb2e8845fe79274fe63f5214d117eef3bfdffdc6aa8bf6904ea216047bd626043c5ecb36cd15d5560a
+pkgver=2
+desc='redirect connections of dynamic linked programs to one or more proxies'
+
+[deps]
+musl
+
+[build]
+CFLAGS=-D_GNU_SOURCE ./configure --prefix="$butch_prefix"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install install-config

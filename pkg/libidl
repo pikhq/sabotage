@@ -1,0 +1,20 @@
+[mirrors]
+http://ftp.gnome.org/pub/gnome/sources/libIDL/0.8/libIDL-0.8.14.tar.bz2
+
+[vars]
+filesize=427149
+sha512=906dde087908acd64b209fe466a89ae52a6ea23601cb30092063a6e062b1b6640fc2d5f422efcdd52b2b36ce20e6c244da6205fde0bdcec787fe64058be7adac
+
+[deps]
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  libIDL_cv_long_long_format=ll
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,10 @@
+--- strace-4.8.org/defs.h
++++ strace-4.8/defs.h
+@@ -155,6 +155,7 @@
+     || defined(METAG) \
+     || defined(TILE) \
+     || defined(XTENSA) \
++    || defined(POWERPC) \
+     ) && defined(__linux__)
+ # include <sys/ptrace.h>
+ #else

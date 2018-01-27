@@ -1,0 +1,35 @@
+[mirrors]
+http://heanet.dl.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz
+http://surfnet.dl.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz
+http://switch.dl.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz
+
+[vars]
+filesize=167379
+sha512=9ecdea460858b7e6ad7ca2534ecb3581397e6c1fa904459affe19ce49f528e580e143b42b13413b292ae7b57901a8008e6a9ee3821824f6ff7914b136f75c658
+
+[deps]
+allegro4
+
+[build]
+patch -p1 < "$K"/dumb-Makefile-DESTDIR.patch
+
+cat << EOF > make/config.txt
+include make/unix.inc
+ALL_TARGETS := core core-examples core-headers
+ALL_TARGETS += allegro allegro-examples allegro-headers
+PREFIX := $butch_prefix
+DESTDIR := $butch_install_dir
+EOF
+
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest/bin"
+mkdir -p "$dest/lib"
+mkdir -p "$dest/include"
+
+mkdir -p bin
+printf "#!/bin/sh\necho -lalleg -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib\n" > bin/allegro-config
+chmod +x bin/allegro-config
+export PATH="$PWD/bin:$PATH"
+
+make -j$MAKE_THREADS CC="$CC"
+make DESTDIR="$butch_install_dir" install

@@ -1,0 +1,12 @@
+--- nwipe-0.16/configure.ac	2014-05-15 03:24:09.000000000 -0500
++++ nwipe-0.16-fixed/configure.ac	2014-10-20 16:09:36.000000000 -0500
+@@ -42,9 +42,6 @@
+ 	)]
+ )
+ 
+-AC_CHECK_LIB([parted], [ped_device_probe_all], ,[AC_MSG_ERROR([parted development library not found])])
+-AC_CHECK_LIB([pthread], [main], ,[AC_MSG_ERROR([pthread development library not found])])
+-
+ # Checks for header files.
+ AC_CHECK_HEADERS([fcntl.h inttypes.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/file.h sys/ioctl.h unistd.h])
+ 

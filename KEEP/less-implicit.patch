@@ -1,0 +1,20 @@
+--- less-444.org/configure
++++ less-444/configure
+@@ -4221,7 +4221,7 @@
+     LIBS="$LIBS $TERMLIBS"
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <termcap.h>
+ int
+ main ()
+ {
+@@ -4252,7 +4252,7 @@
+     LIBS="$LIBS $TERMLIBS"
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <termcap.h>
+ int
+ main ()
+ {

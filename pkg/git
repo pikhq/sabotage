@@ -1,0 +1,32 @@
+[mirrors]
+http://cdn.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz
+
+[vars]
+filesize=4894768
+sha512=dcf300b28e41f7757d866e768d641137718b43eb6d12a2cfff99fb429775e0cab87bbff48147b8588bc0f69e92eb5ca2ad1f75c8cf5205e41853d8e8652f900b
+pkgver=15
+desc='tools to work with the git distributed version control system'
+
+[deps]
+musl
+curl
+
+[deps.run]
+perl
+
+[build]
+
+make CURL_LIBCURL="$butch_root_dir/lib/libcurl.a $butch_root_dir/lib/libssl.a $butch_root_dir/lib/libcrypto.a" \
+  CC="$CC" HOSTCC="$HOSTCC" \
+  prefix="$butch_prefix" gitexecdir="$butch_prefix"/lib/git-core \
+  NO_TCLTK=1 NO_PYTHON=1 NO_EXPAT=1 NO_GETTEXT=1 \
+  CFLAGS="$optcflags" LDFLAGS="$optldflags -static" \
+  NO_REGEX=NeedsStartEnd \
+  DESTDIR="$butch_install_dir" -j$MAKE_THREADS V=1 all install
+
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/bin
+cp gitk-git/gitk "$dest"/bin/
+cp perl/private-Error.pm "$dest"/lib/perl5/site_perl/Error.pm
+ln -sf git "$dest"/bin/git-receive-pack
+ln -sf git "$dest"/bin/git-upload-archive

@@ -1,0 +1,47 @@
+[mirrors]
+http://www.weechat.org/files/src/weechat-2.0.tar.xz
+
+[vars]
+filesize=1967636
+sha512=771618c09fb24182f86304af8c12e158e3d97afbc51219d1f4c5f9ec102aac15c4511a6301141d47f67e385f41bf0ba91e3df795ffdd78a19d1f6a5b1121e951
+pkgver=8
+desc='IRC client for the terminal'
+
+[deps]
+libgcrypt
+curl
+curses
+
+[deps.host]
+cmake
+
+[build]
+patch -p1 < "$K"/weechat-1.6-curses.patch
+mkdir -p build && cd build
+for i in ar ld nm objcopy objdump strip ; do
+printf '#!/bin/sh\n%s%s "$@"\n' "$CROSS_COMPILE" "$i" > "$CROSS_COMPILE""$i"
+chmod +x "$CROSS_COMPILE""$i"
+done
+[ -n "$CROSS_COMPILE" ] && xconfflags="
+-DCMAKE_FIND_ROOT_PATH=$butch_root_dir$butch_prefix \
+-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+-DCMAKE_AR="$CROSS_COMPILE"ar \
+-DCMAKE_LD="$CROSS_COMPILE"ld \
+-DCMAKE_NM="$CROSS_COMPILE"nm \
+-DCMAKE_OBJCOPY="$CROSS_COMPILE"objcopy \
+-DCMAKE_OBJDUMP="$CROSS_COMPILE"objdump \
+-DCMAKE_STRIP="$CROSS_COMPILE"strip \
+"
+
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags  -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+CXXFLAGS="$optcflags" \
+cmake $xconfflags \
+  -DCMAKE_INSTALL_PREFIX="$butch_prefix" \
+  -DCMAKE_VERBOSE_MAKEFILE=ON \
+  -DENABLE_RUBY=OFF \
+  ..
+make -j$MAKE_THREADS VERBOSE=1
+make DESTDIR="$butch_install_dir" install

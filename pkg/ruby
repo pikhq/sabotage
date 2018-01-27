@@ -1,0 +1,33 @@
+[mirrors]
+https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.0.tar.gz
+
+[vars]
+filesize=15834941
+sha512=0712fe68611f5d0cd6dd54b814f825478e64b6a62bdf67bce431f4dca2dc00b1a33f77bebfbcd0a151118a1152554ab457decde435b424aa1f004bc0aa40580d
+pkgver=3
+desc='interpreter for the ruby scripting language'
+
+[deps]
+zlib
+libressl
+gdbm
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir --with-baseruby=ruby"
+# ruby crosscompile requires ruby installed on the host!
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure -C $xconfflags \
+  stack_protector=no \
+  --without-jemalloc \
+  --prefix="$butch_prefix" \
+  rb_cv_binary_elf=yes \
+  --disable-install-doc
+
+ # the elf test is broken, it uses cat -e which is gnu only
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

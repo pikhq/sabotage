@@ -1,0 +1,26 @@
+#!/bin/sh
+if [ -z "$S" ] ; then
+	echo 'S not set, did you source config ?'
+	exit 1
+fi
+pkg=$1
+if [ -z "$pkg" ] ; then
+	echo 'this script unlinks all files installed by a package.'
+	echo 'need package name as argv!'
+	exit 1
+fi
+
+[ -z "$butch_filelists" ] && butch_filelists="$S"/filelists
+fl="$butch_filelists"/"$pkg".txt
+if [ ! -e "$fl" ] ; then
+	echo "filelist $fl does not exist, probably the program is not installed"
+	exit 1
+fi
+
+while read f ; do
+	fs=$(printf "%s\n" "$f" | sed 's,^.,,g')
+	[ "$R" = "/" ] || fs="$R""$fs"
+	if [ -L "$fs" ] ; then
+		rm -f "$fs" && echo "$fs removed successfully"
+	fi
+done < "$fl"

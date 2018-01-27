@@ -1,0 +1,47 @@
+[mirrors]
+https://poppler.freedesktop.org/poppler-0.57.0.tar.xz
+
+[vars]
+filesize=1703300
+sha512=197a0bf51e7fd607db83144d771904e48f266ab9e1252c688f9e7700a5bdd239670cf0363e9d77137bafa9c08fb6ddb9d066cc78a74dac7dfd717662b25cac5f
+pkgver=11
+desc='PDF rendering library and some utilities'
+
+[deps.host]
+pkgconf
+
+[deps]
+libx11
+libtiff
+libjpeg
+libpng
+freetype
+fontconfig
+cairo
+glib
+
+[build]
+patch -p1 < "$K"/poppler-segfault.patch
+# https://bugs.freedesktop.org/show_bug.cgi?id=12925
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags \
+  --enable-introspection=no \
+  --enable-cms=none \
+  --disable-gtk-test \
+  --disable-poppler-qt4 \
+  --disable-poppler-qt5 \
+  --disable-splash-output \
+  --enable-libopenjpeg=none \
+  --enable-xpdf-headers \
+  --enable-zlib
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+make V=1 -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install
+dest="$butch_install_dir""$butch_prefix"
+rm -rf "$dest"/share/gtk-doc

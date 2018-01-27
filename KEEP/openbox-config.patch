@@ -1,0 +1,59 @@
+--- lxde-common-0.5.5.org/openbox/rc.xml.in
++++ lxde-common-0.5.5/openbox/rc.xml.in
+@@ -175,7 +175,55 @@
+ 
+ <keyboard>
+   <chainQuitKey>C-g</chainQuitKey>
+-
++  <!-- Keybindings for window moving -->
++   <keybind key="W-Up">
++     <action name="DirectionalFocusNorth">
++       <dialog>yes</dialog>
++     </action>
++   </keybind>
++   <keybind key="W-Down">
++     <action name="DirectionalFocusSouth">
++       <dialog>yes</dialog>
++     </action>
++   </keybind>
++   <keybind key="W-Left">
++     <action name="DirectionalFocusWest">
++       <dialog>yes</dialog>
++     </action>
++   </keybind>
++   <keybind key="W-Right">
++     <action name="DirectionalFocusEast">
++       <dialog>yes</dialog>
++     </action>
++   </keybind>
++   <keybind key="W-C-Up">
++     <action name="MoveToEdgeNorth"/>
++   </keybind>
++   <keybind key="W-C-Down">
++     <action name="MoveToEdgeSouth"/>
++   </keybind>
++   <keybind key="W-C-Left">
++     <action name="MoveToEdgeWest"/>
++   </keybind>
++   <keybind key="W-C-Right">
++     <action name="MoveToEdgeEast"/>
++   </keybind>
++   <keybind key="W-S-Up">
++     <action name="UnmaximizeFull"/>
++     <action name="GrowToEdgeNorth"/>
++   </keybind>
++   <keybind key="W-S-Down">
++     <action name="UnmaximizeFull"/>
++     <action name="GrowToEdgeSouth"/>
++   </keybind>
++   <keybind key="W-S-Left">
++     <action name="UnmaximizeFull"/>
++     <action name="GrowToEdgeWest"/>
++   </keybind>
++   <keybind key="W-S-Right">
++     <action name="UnmaximizeFull"/>
++     <action name="GrowToEdgeEast"/>
++   </keybind>
+   <!-- Keybindings for desktop switching -->
+   <keybind key="C-A-Left">
+     <action name="DesktopLeft"><dialog>no</dialog><wrap>no</wrap></action>

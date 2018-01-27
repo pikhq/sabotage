@@ -1,0 +1,23 @@
+[mirrors]
+http://downloads.sourceforge.net/project/lxde/GPicView%20%28image%20Viewer%29/0.2.x/gpicview-0.2.5.tar.xz
+
+[vars]
+filesize=349536
+sha512=afc7e67c7ae1252f9c1816ee46fe69e96ea7be9a60e03406a539f17b2e4f0e4b93a028c6f3f1c455f5433d6d7d78a58dcee2cb0ac91ea53093a21935bf454afd
+desc='simple GTK+ picture viewer program'
+
+[deps]
+gtk+2
+libjpeg
+shared-mime-info
+
+[build]
+. "$K"/intltool-fix
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+CFLAGS="-D_GNU_SOURCE $optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" --disable-nls $xconfflags
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

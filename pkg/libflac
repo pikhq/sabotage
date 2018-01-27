@@ -1,0 +1,39 @@
+[mirrors]
+http://downloads.xiph.org/releases/flac/flac-1.3.2.tar.xz
+
+[vars]
+filesize=776192
+sha512=63910e8ebbe508316d446ffc9eb6d02efbd5f47d29d2ea7864da9371843c8e671854db6e89ba043fe08aef1845b8ece70db80f1cce853f591ca30d56ef7c3a15
+pkgver=2
+
+[deps]
+
+[build]
+# apply patch to prevent CFLAGS manipulation in ./configure
+patch -p1 -l < "$K"/libflac-prevent-cflag-manipulation.patch
+sed -i 's,-fno-inline-small-functions,-Wall,g' configure
+
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine) --with-sysroot=$butch_root_dir"
+testlib() {
+	printf "int main() {}\n" > test_lib.c
+	$CC test_lib.c -l$1 >/dev/null 2>&1
+}
+testlib ogg && \
+  oggflags="--with-ogg-libraries=$butch_root_dir$butch_prefix/lib --with-ogg-includes=$butch_root_dir$butch_prefix/include" || \
+  oggflags="--disable-ogg"
+
+CFLAGS="$optcflags -D_GNU_SOURCE" \
+LDFLAGS="$optldflags" \
+  ./configure -C --prefix="$butch_prefix" $xconfflags $oggflags \
+  --disable-sse --disable-altivec --disable-avx --disable-asm-optimizations \
+  --disable-thorough-tests --disable-doxygen-docs --disable-oggtest
+
+[ -n "$CROSS_COMPILE" ] && "$K"/libtool.cross.gen --sysroot="$butch_root_dir"
+# build only libFLAC and not all the C++ crap
+make -j$MAKE_THREADS V=1 -C src/libFLAC
+make DESTDIR="$butch_install_dir" -C src/libFLAC install
+
+echo installing headers
+make -j$MAKE_THREADS -C include
+make DESTDIR="$butch_install_dir" -C include install

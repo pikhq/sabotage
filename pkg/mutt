@@ -1,0 +1,38 @@
+[vars]
+filesize=3782032
+sha512=f1b4a7230253651857f61bd7215cce870a613012f613d4c907d401556083726c8ed7d429d57a8bf858c3b5b23683380d4c1494540d86ca80813e22cb6b95bc1e
+tardir=mutt-1.5.23
+desc='terminal email client'
+
+[mirrors]
+http://ftp.vim.org/pub/mail/mutt/mutt-1.5.23.tar.gz
+
+[deps]
+curses
+libressl
+cyrus-sasl
+
+[deps.host]
+perl
+
+[build]
+[ -n "$CROSS_COMPILE" ] && \
+  xconfflags="--host=$($CC -dumpmachine|sed 's/musl/gnu/') \
+  --with-sysroot=$butch_root_dir"
+
+CPPFLAGS="-D_GNU_SOURCE" CFLAGS="$optcflags" CXXFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+./configure --prefix="$butch_prefix" $xconfflags \
+--disable-nls \
+--disable-silent-rules \
+--enable-imap \
+--enable-smtp \
+--with-ssl  \
+--with-sasl  \
+--with-homespool=/var/spool/
+for i in doc ; do
+        printf 'all:\n\ttrue\ninstall:\n\ttrue\nclean:\n\ttrue\n' > "$i"/Makefile
+done
+
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

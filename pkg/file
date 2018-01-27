@@ -1,5 +1,23 @@
-tarxf ftp://ftp.astron.com/pub/file/ file-5.05 .tar.gz
-./configure --prefix=/ --disable-shared
+[mirrors]
+http://distfiles.macports.org/file/file-5.32.tar.gz
+ftp://ftp.astron.com/pub/file/file-5.32.tar.gz
+http://dbg.download.sourcemage.org/fallback/file-5.32.tar.gz
+
+[vars]
+filesize=797025
+sha512=315343229fa196335389544ee8010e9e80995ef4721938492dedcfb0465dfc45e1feb96f26dfe53cab484fb5d9bac54d2d72917fbfd28a1d998c6ad8c8f9792f
+pkgver=5
+desc='analyzes files and often outputs helpful information'
+
+[build]
+cp -f "$K"/config.sub .
+printf "all:\n\ttrue\n\ninstall:\n\ttrue\n\n" > tests/Makefile.in
+[ -n "$CROSS_COMPILE" ] && xconfflags="--host=$($CC -dumpmachine)"
+LDFLAGS="$optldflags" \
+CC="$CC -Wl,-static -static-libgcc -static -D_GNU_SOURCE -D_BSD_SOURCE" \
+CFLAGS="$optcflags" \
+./configure -C --prefix="$butch_prefix" \
+  --disable-shared $xconfflags
 sed -i 's/memory.h/string.h/' src/encoding.c src/ascmagic.c
-make
-make DESTDIR=$R install
+make -j$MAKE_THREADS V=1
+make DESTDIR="$butch_install_dir" install

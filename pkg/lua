@@ -1,0 +1,51 @@
+[mirrors]
+http://www.lua.org/ftp/lua-5.2.4.tar.gz
+
+[vars]
+filesize=252651
+sha512=cd77148aba4b707b6c159758b5e8444e04f968092eb98f6b4c405b2fb647e709370d5a8dcf604176101d3407e196a7433b5dcdce4fe9605c76191d3649d61a8c
+
+[deps]
+readline
+
+[build]
+sed -i "s@#define LUA_ROOT\t"'"/usr/local/"@#define LUA_ROOT "/"@' src/luaconf.h
+sed -i 's@INSTALL_TOP= /usr/local@INSTALL_TOP='"$butch_install_dir""$butch_prefix"'@' Makefile
+
+make \
+  CC="$CC" \
+  -j$MAKE_THREADS \
+  MYCFLAGS="-fPIC $optcflags" \
+  MYLDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  linux
+make INSTALL_TOP="$butch_install_dir""$butch_prefix" install
+dest="$butch_install_dir""$butch_prefix"
+mkdir -p "$dest"/lib/pkgconfig
+for subver in 1 2 ; do
+cat << EOF > "$dest"/lib/pkgconfig/lua-5.${subver}.pc
+majver=5
+minver=$subver
+relver=0
+version=\${majver}.\${minver}.\${relver}
+abiver=5.$subver
+
+prefix=$butch_prefix
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+libname=lua
+includedir=\${prefix}/include
+
+INSTALL_LMOD=\${prefix}/share/lua/\${abiver}
+INSTALL_CMOD=${prefix}/lib/lua/${abiver}
+
+Name: lua
+Description: Just-in-time compiler for Lua
+URL: http://luajit.org
+Version: \${version}
+Requires:
+Libs: -L\${libdir} -l\${libname}
+Libs.private: -Wl,-E -lm -ldl
+Cflags: -I\${includedir}
+
+EOF
+done

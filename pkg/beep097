@@ -1,0 +1,16 @@
+[mirrors]
+http://downloads.sourceforge.net/project/beepmp/bmp/0.9.7.1/bmp-0.9.7.1.tar.gz
+
+[vars]
+filesize=2056564
+sha512=a269f9487e67243a8bd24b70b0bafc7130de817ee5d925a1611a455135fe7fff3ed58860c7635a0265cc5b07b9d77483a55d84f40718cc3a3c164569496baecb
+
+[deps]
+gtk+2
+mpg123
+
+[build]
+sed -i 's@sys/errno@errno@' beep/playlist.c
+CFLAGS=-D_GNU_SOURCE ./configure -C --prefix="$butch_prefix"
+make -j$MAKE_THREADS
+make DESTDIR="$butch_install_dir" install

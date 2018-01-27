@@ -1,0 +1,14 @@
+[mirrors]
+https://github.com/vishaps/voc/archive/v2.00.tar.gz
+
+[vars]
+filesize=1156246
+sha512=3a1be79a0e06258063babb7f022af54e3ba9707f77d437067a8b30712c5a8f06ff60e66e98f4af8418955d37de70ad306c8af6188d7f87f787b5d35e28c6fae9
+pkgver=1
+tarball=voc-2.00.tar.gz
+
+[deps.host]
+sed
+
+[build]
+make full

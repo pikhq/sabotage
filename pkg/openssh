@@ -1,20 +1,68 @@
-tarxf http://ftp.spline.de/pub/OpenBSD/OpenSSH/portable/ openssh-5.8p1 .tar.gz
+[mirrors]
+http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.6p1.tar.gz
+http://ftp.spline.de/pub/OpenBSD/OpenSSH/portable/openssh-7.6p1.tar.gz
 
-cp $K/openssh-hacks.h .
-CC="gcc -include openssh-hacks.h -D_BSD_SOURCE -DMISSING_HOWMANY -DMISSING_FD_MASK -DMISSING_NFDBITS" ./configure --prefix=/ \
-  --sbindir=/bin --libexecdir=/lib/ssh --sysconfdir=/etc/ssh \
+[vars]
+filesize=1489788
+sha512=de17fdcb8239401f76740c8d689a8761802f6df94e68d953f3c70b9f4f8bdb403617c48c1d01cc8c368d88e9d50aee540bf03d5a36687dfb39dfd28d73029d72
+pkgver=4
+service=openssh
+serviceflags="--down --log"
+
+[deps]
+libressl
+
+[build]
+patch -p1 < "$K"/openssh-sys_param.patch
+
+# prevent from installing some things (keysign and maybe others) setuid.
+sed -i 's@-m 4711@-m 0750@g' Makefile.in
+
+[ -n "$CROSS_COMPILE" ] && {
+  xconfflags="--host=$($CC -dumpmachine) \
+  --with-sysroot=$butch_root_dir"
+  sed -i 's/cross_compiling=maybe/cross_compiling=yes/' configure
+}
+
+CC="$CC -D_BSD_SOURCE -DMISSING_FD_MASK -DMISSING_NFDBITS" CFLAGS="$optcflags" \
+LDFLAGS="$optldflags -Wl,-rpath-link=$butch_root_dir$butch_prefix/lib" \
+  ./configure -C --prefix="$butch_prefix" \
+  --sbindir="$butch_prefix"/bin --libexecdir="$butch_prefix"/lib/ssh \
+  --sysconfdir="$butch_prefix"/etc/ssh \
   --with-privsep-user=nobody \
-  --with-md5-passwords --with-mantype=man --mandir=/share/man \
-  --disable-strip --disable-lastlog --disable-utmpx --disable-btmp
+  --with-xauth="$butch_prefix"/bin/xauth \
+  --with-ldflags="$optldflags" \
+  --without-stackprotect \
+  --with-md5-passwords --with-mantype=man --mandir="$butch_prefix"/share/man \
+  --disable-strip --disable-lastlog --disable-utmp --disable-utmpx --disable-btmp \
+  --disable-wtmp --disable-wtmpx --disable-pututline --disable-pututxline $xconfflags
 
 mkdir netinet
 touch netinet/in_systm.h
 
 sed -i '/USE_BTMP/d' config.h
+sed -i '/USE_UTMP/d' config.h
+sed -i 's@HAVE_DECL_HOWMANY 1@HAVE_DECL_HOWMANY 0@' config.h
 
-make
+make -j$MAKE_THREADS
 
-chown root:root /var/empty
-chmod 0755 /var/empty
+#key generation is disabled for packaging
+#the sshd service will create the keys on service prereqs
+make DESTDIR="$butch_install_dir" install-nokeys
 
-make DESTDIR=$R install-nokeys
+dest="$butch_install_dir""$butch_prefix"
+
+mv "$dest"/etc/ssh/sshd_config "$dest"/etc/ssh/sshd_config.default
+cat << 'EOF' > "$dest"/etc/ssh/sshd_config
+Port 22
+Protocol 2
+Ciphers chacha20-poly1305@openssh.com,aes128-gcm@openssh.com,aes256-gcm@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+UsePrivilegeSeparation sandbox
+AuthorizedKeysFile  .ssh/authorized_keys
+#X11Forwarding yes
+AcceptEnv LANG LC_*
+Subsystem sftp $butch_prefix/lib/ssh/sftp-server
+EOF
